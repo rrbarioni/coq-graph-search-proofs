@@ -192,18 +192,6 @@ Example n_edges_test_1:
    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = 6.
 Proof. simpl. reflexivity. Qed.
 
-Fixpoint al_contains_vertex
- (v : Vertex)
- (al : AdjacencyList)
- : Prop :=
-  match al with
-  | [] => False
-  | (nl v' l') :: alt =>
-      if beq_vertex v' v
-      then True
-      else al_contains_vertex v alt
-  end.
-
 (*
 DFS:
 *)
