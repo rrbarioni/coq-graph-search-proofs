@@ -192,6 +192,18 @@ Example n_edges_test_1:
    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = 6.
 Proof. simpl. reflexivity. Qed.
 
+Fixpoint al_contains_vertex
+ (v : Vertex)
+ (al : AdjacencyList)
+ : Prop :=
+  match al with
+  | [] => False
+  | (nl v' l') :: alt =>
+      if beq_vertex v' v
+      then True
+      else al_contains_vertex v alt
+  end.
+
 (*
 DFS:
 *)
@@ -301,5 +313,48 @@ Example bfs_test_1:
     ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 2)
     = [v 2; v 0; v 3; v 1].
 Proof. simpl. reflexivity. Qed.
+
+(*
+  If a Vertex does not belong to the graph,
+  searches returns a list with only this
+  Vertex.
+*)
+Example bfs_test_2:
+  bfs
+    ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 5)
+    = [v 5].
+Proof. simpl. reflexivity. Qed.
+
+(*
+DFS == BFS:
+*)
+
+Fixpoint insert_sort
+ (v' : Vertex)
+ (vl : VertexList) :=
+  match v' with v v'' =>
+    match vl with
+    | nil => (v v'') :: nil
+    | (v vlh) :: vlt =>
+        if v'' <=? vlh
+        then (v v'') :: (v vlh) :: vlt
+        else (v vlh) :: insert_sort (v v'') vlt
+    end
+  end.
+
+Fixpoint sort (l: VertexList) : VertexList :=
+  match l with
+  | nil => nil
+  | h :: t => insert_sort h (sort t)
+  end.
+
+Example sort_test_1:
+  sort [v 3; v 5; v 1] = [v 1; v 3; v 5].
+Proof. simpl. reflexivity. Qed.
+
+Theorem dfs_bfs_equal :
+  forall (al : AdjacencyList) (v : Vertex),
+  sort (dfs al v) = sort (bfs al v).
+Proof. Admitted.
 
 End SEARCH.
