@@ -41,11 +41,11 @@ Definition VertexList := list Vertex.
 Compute ([v 3; v 5; v 10]).
 
 (*
-contains_vertex:
+b_vl_contains_vertex:
   Given a Vertex 'v' and a VertexList 'vl',
-  checks if 'vl' has a vertice 'v'.
+  checks if 'vl' has a Vertex 'v'.
 *)
-Fixpoint contains_vertex
+Fixpoint b_vl_contains_vertex
  (v : Vertex)
  (vl : VertexList)
  : bool :=
@@ -54,15 +54,29 @@ Fixpoint contains_vertex
   | vh :: vt =>
     if beq_vertex v vh
     then true
-    else contains_vertex v vt
+    else b_vl_contains_vertex v vt
   end.
 
-Example contains_vertex_test_1:
-  contains_vertex (v 1) [v 2; v 3; v 4] = false.
+Example b_vl_contains_vertex_test_1:
+  b_vl_contains_vertex (v 1) [v 2; v 3; v 4] = false.
 Proof. simpl. reflexivity. Qed.
-Example contains_vertex_test_2:
-  contains_vertex (v 4) [v 2; v 3; v 4] = true.
+Example b_vl_contains_vertex_test_2:
+  b_vl_contains_vertex (v 4) [v 2; v 3; v 4] = true.
 Proof. simpl. reflexivity. Qed.
+
+(*
+vl_contains_vertex:
+  Same as 'b_vl_contains_vertex', but
+  returns a 'Prop'.
+*)
+
+Fixpoint vl_contains_vertex
+ (v : Vertex)
+ (vl : VertexList)
+ : Prop :=
+  if b_vl_contains_vertex v vl
+  then True
+  else False.
 
 (*
 remove_vertex:
@@ -100,6 +114,42 @@ Example diff_vertex_lists_test_1:
   diff_vertex_lists
     [v 2; v 3; v 1; v 1] [v 1; v 4]
     = [v 2; v 3].
+Proof. simpl. reflexivity. Qed.
+
+(*
+sort_vertex_list:
+  Given a VertexList 'vl', return 'vl' with its
+  values sorted.
+*)
+
+Fixpoint insert_sort_vertex_list
+ (v' : Vertex)
+ (vl : VertexList) :=
+  match v' with v v'' =>
+    match vl with
+    | nil => (v v'') :: nil
+    | (v vlh) :: vlt =>
+        if v'' <=? vlh
+        then (v v'')
+          :: (v vlh) :: vlt
+        else (v vlh)
+          :: insert_sort_vertex_list (v v'') vlt
+    end
+  end.
+
+Fixpoint sort_vertex_list
+ (vl: VertexList)
+ : VertexList :=
+  match vl with
+  | [] => []
+  | vlh :: vlt =>
+      insert_sort_vertex_list
+        vlh (sort_vertex_list vlt)
+  end.
+
+Example sort_vertex_list_test_1:
+  sort_vertex_list
+    [v 3; v 5; v 1] = [v 1; v 3; v 5].
 Proof. simpl. reflexivity. Qed.
 
 (* NeighborsList functions *)
@@ -158,6 +208,39 @@ Example get_neighbors_list_test_1:
     [1 -> [2; 3; 4]; 2 -> [1; 3; 5]]
     = [v 1; v 3; v 5].
 Proof. simpl. reflexivity. Qed.
+
+(*
+b_al_contains_vertex:
+  Given a Vertex 'v' and an AdjacencyList
+  'al', checks if 'al' has a Vertex 'v'.
+*)
+
+Fixpoint b_al_contains_vertex
+ (v : Vertex)
+ (al : AdjacencyList)
+ : bool :=
+  match al with
+  | [] => false
+  | (nl v' l') :: alt =>
+      if beq_vertex v v'
+      then true
+      else b_al_contains_vertex v alt
+  end.
+
+
+(*
+al_contains_vertex:
+  Same as 'b_al_contains_vertex', but
+  returns a 'Prop'.
+*)
+
+Fixpoint al_contains_vertex
+ (v : Vertex)
+ (al : AdjacencyList)
+ : Prop :=
+  if b_al_contains_vertex v al
+  then True
+  else False.
 
 (*
 n_vertices:
@@ -223,7 +306,7 @@ Fixpoint dfs_stack
       match stack with
       | [] => rev visited
       | vertex :: stack_pop =>
-          if contains_vertex
+          if b_vl_contains_vertex
             vertex visited
           then dfs_stack al
             visited stack_pop calls'
@@ -278,7 +361,7 @@ Fixpoint bfs_queue
       match queue with
       | [] => rev visited
       | vertex :: queue_pop =>
-          if contains_vertex
+          if b_vl_contains_vertex
             vertex visited
           then bfs_queue al
             visited queue_pop calls'
@@ -317,32 +400,35 @@ Proof. simpl. reflexivity. Qed.
 DFS == BFS:
 *)
 
-Fixpoint insert_sort
- (v' : Vertex)
- (vl : VertexList) :=
-  match v' with v v'' =>
-    match vl with
-    | nil => (v v'') :: nil
-    | (v vlh) :: vlt =>
-        if v'' <=? vlh
-        then (v v'') :: (v vlh) :: vlt
-        else (v vlh) :: insert_sort (v v'') vlt
-    end
-  end.
+(*
+dfs_transitivity:
+  For every Graph 'al', if it has three
+  vertices 'a', 'b' and 'c', and the DFS
+  of 'al' starting from 'a' encounters
+  'b', and the DFS of 'al' starting from
+  'b' encounters 'c', then the the DFS of
+  'al' starting from 'a' encounters 'c'.
+*)
+Theorem dfs_transitivity :
+  forall (al : AdjacencyList) (a b c : Vertex),
+  al_contains_vertex a al ->
+  al_contains_vertex b al ->
+  al_contains_vertex c al ->
+  vl_contains_vertex b (dfs al a) ->
+  vl_contains_vertex c (dfs al b) ->
+  vl_contains_vertex c (dfs al a).
+Proof. Admitted.
 
-Fixpoint sort (l: VertexList) : VertexList :=
-  match l with
-  | nil => nil
-  | h :: t => insert_sort h (sort t)
-  end.
-
-Example sort_test_1:
-  sort [v 3; v 5; v 1] = [v 1; v 3; v 5].
-Proof. simpl. reflexivity. Qed.
-
+(*
+dfs_bfs_equal:
+  For every Graph 'al' and Vertex 'v',
+  the DFS of 'al' starting from 'v'
+  returns the same list of Vertices from
+  the BFS of 'al' starting from 'v'.
+*)
 Theorem dfs_bfs_equal :
   forall (al : AdjacencyList) (v : Vertex),
-  sort (dfs al v) = sort (bfs al v).
+  sort_vertex_list (dfs al v) = sort_vertex_list (bfs al v).
 Proof. Admitted.
 
 End SEARCH.
