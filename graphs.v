@@ -267,4 +267,39 @@ def bfs(graph, start):
   return visited
 *)
 
+Fixpoint bfs_queue
+ (al : AdjacencyList)
+ (visited queue : VertexList)
+ (calls : nat)
+ : VertexList :=
+  match calls with
+  | 0 => rev visited
+  | S calls' =>
+      match queue with
+      | [] => rev visited
+      | vertex :: queue_pop =>
+          if contains_vertex
+            vertex visited
+          then bfs_queue al
+            visited queue_pop calls'
+          else bfs_queue al
+            ([vertex] ++ visited)
+            (queue_pop ++ (diff_vertex_lists (get_neighbors_list vertex al) visited))
+            calls'
+      end
+  end.
+
+Fixpoint bfs
+ (al : AdjacencyList)
+ (start : Vertex)
+ : VertexList :=
+  bfs_queue al [] [start]
+    ((n_vertices al) + (n_edges al)).
+
+Example bfs_test_1:
+  bfs
+    ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 2)
+    = [v 2; v 0; v 3; v 1].
+Proof. simpl. reflexivity. Qed.
+
 End SEARCH.
