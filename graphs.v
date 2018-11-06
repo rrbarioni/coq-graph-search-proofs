@@ -165,6 +165,26 @@ Inductive NeighborsList : Type :=
 Compute (nl (v 1) [v 3; v 5; v 10]).
 
 (*
+is_a_valid_nl:
+  Given an NeighborList 'nl', tells if 'nl'
+  is a valid NeighborList.
+  What is a valid NeighborList?
+  - It must not have duplicated Vertices.
+*)(*
+Fixpoint is_a_valid_nl
+ (nl' : NeighborsList)
+ : Prop :=
+  match nl' with nl v' l' =>
+    match l' with
+    | [] => True
+    | h' :: t' =>
+        if b_vl_contains_vertex h' t'
+        then False
+        else is_a_valid_nl (nl v' t')
+    end
+  end.*)
+
+(*
   Syntactic sugar for representing a
   NeighborsList.
 *)
@@ -198,8 +218,7 @@ is_a_valid_al:
 *)(*
 Fixpoint is_a_valid_al
  (al : AdjacencyList)
- : Prop :=
-   DO IMPLEMENTATION *)
+ : Prop := *)
 
 (*
 get_neighbors_list:
