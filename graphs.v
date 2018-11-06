@@ -193,8 +193,8 @@ is_a_valid_al:
   - All NeighborLists must not have
     duplicated Vertices;
   - If a Vertex 'v' appears in any NeighborList,
-    then 'v' must be listed as a Vertex in the
-    AdjacencyList.
+    then 'v' must has its own NeighborList in
+    the AdjacencyList.
 *)(*
 Fixpoint is_a_valid_al
  (al : AdjacencyList)
