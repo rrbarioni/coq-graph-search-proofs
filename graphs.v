@@ -1,4 +1,4 @@
-(* Incluindo dependencias *)
+(* Dependencies *)
 Require Export Coq.Bool.Bool.
 Require Export Coq.omega.Omega.
 Require Export Coq.Lists.List.
@@ -118,7 +118,7 @@ Proof. simpl. reflexivity. Qed.
 
 (*
 sort_vertex_list:
-  Given a VertexList 'vl', return 'vl' with its
+  Given a VertexList 'vl', returns 'vl' with its
   values sorted.
 *)
 
@@ -178,7 +178,7 @@ Notation "a -> [ ]" :=
 (* AdjacencyList functions *)
 
 (*
-  An AdjacencyList is the representation of an
+  An AdjacencyList is the representation of a
   graph; it is a list of NeighborsList.
 *)
 Definition AdjacencyList := list NeighborsList.
@@ -186,9 +186,25 @@ Definition AdjacencyList := list NeighborsList.
 Compute ([1 -> [2; 3; 4]; 2 -> [1; 3; 5]]).
 
 (*
+is_a_valid_al:
+  Given an AdjacencyList 'al', tells if 'al'
+  is a valid graph.
+  What is a valid graph?
+  - All NeighborLists must not have
+    duplicated Vertices;
+  - If a Vertex 'v' appears in any NeighborList,
+    then 'v' must be listed as a Vertex in the
+    AdjacencyList.
+*)(*
+Fixpoint is_a_valid_al
+ (al : AdjacencyList)
+ : Prop :=
+   DO IMPLEMENTATION *)
+
+(*
 get_neighbors_list:
-  Given an AdjacentList 'al' and a Vertex 'v',
-  return the NeighborList of 'v' in 'al'.
+  Given an AdjacencyList 'al' and a Vertex 'v',
+  returns the NeighborList of 'v' in 'al'.
 *)
 Fixpoint get_neighbors_list
  (v : Vertex)
@@ -244,7 +260,7 @@ Fixpoint al_contains_vertex
 
 (*
 n_vertices:
-  Given an AdjacentList 'al', return the
+  Given an AdjacencyList 'al', returns the
   number of vertices in 'al'.
 *)
 Fixpoint n_vertices
@@ -258,7 +274,7 @@ Proof. simpl. reflexivity. Qed.
 
 (*
 n_vertices:
-  Given an AdjacentList 'al', return the
+  Given an AdjacencyList 'al', returns the
   number of edges in 'al'.
 *)
 Fixpoint n_edges
@@ -399,25 +415,6 @@ Proof. simpl. reflexivity. Qed.
 (*
 DFS == BFS:
 *)
-
-(*
-dfs_transitivity:
-  For every Graph 'al', if it has three
-  vertices 'a', 'b' and 'c', and the DFS
-  of 'al' starting from 'a' encounters
-  'b', and the DFS of 'al' starting from
-  'b' encounters 'c', then the the DFS of
-  'al' starting from 'a' encounters 'c'.
-*)
-Theorem dfs_transitivity :
-  forall (al : AdjacencyList) (a b c : Vertex),
-  al_contains_vertex a al ->
-  al_contains_vertex b al ->
-  al_contains_vertex c al ->
-  vl_contains_vertex b (dfs al a) ->
-  vl_contains_vertex c (dfs al b) ->
-  vl_contains_vertex c (dfs al a).
-Proof. Admitted.
 
 (*
 dfs_bfs_equal:
