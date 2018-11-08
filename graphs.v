@@ -152,6 +152,35 @@ Example sort_vertex_list_test_1:
     [v 3; v 5; v 1] = [v 1; v 3; v 5].
 Proof. simpl. reflexivity. Qed.
 
+(*
+is_a_valid_vl:
+  Given an VertexList 'vl', tells if 'vl'
+  is a valid VertexList.
+  What is a valid VertexList?
+  - It must not have duplicated Vertices.
+*)
+
+Fixpoint is_a_valid_vl
+ (vl : VertexList)
+ : Prop :=
+  match vl with
+  | [] => True
+  | vlh :: vlt =>
+      if b_vl_contains_vertex vlh vlt
+      then False
+      else is_a_valid_vl vlt
+  end.
+
+Example is_a_valid_vl_test_1:
+  is_a_valid_vl
+    [v 3; v 5; v 1] = True.
+Proof. simpl. reflexivity. Qed.
+
+Example is_a_valid_vl_test_2:
+  is_a_valid_vl
+    [v 3; v 5; v 1; v 3] = False.
+Proof. simpl. reflexivity. Qed.
+
 (* NeighborsList functions *)
 
 (*
@@ -165,26 +194,6 @@ Inductive NeighborsList : Type :=
 Compute (nl (v 1) [v 3; v 5; v 10]).
 
 (*
-is_a_valid_nl:
-  Given an NeighborList 'nl', tells if 'nl'
-  is a valid NeighborList.
-  What is a valid NeighborList?
-  - It must not have duplicated Vertices.
-*)(*
-Fixpoint is_a_valid_nl
- (nl' : NeighborsList)
- : Prop :=
-  match nl' with nl v' l' =>
-    match l' with
-    | [] => True
-    | h' :: t' =>
-        if b_vl_contains_vertex h' t'
-        then False
-        else is_a_valid_nl (nl v' t')
-    end
-  end.*)
-
-(*
   Syntactic sugar for representing a
   NeighborsList.
 *)
@@ -194,6 +203,30 @@ Notation "a -> [ b ; .. ; c ]" :=
 Notation "a -> [ ]" :=
   (nl (v a) nil)
   (at level 60, right associativity).
+
+(*
+is_a_valid_nl:
+  Given an NeighborList 'nl', tells if 'nl'
+  is a valid NeighborList.
+  What is a valid NeighborList?
+  - It must not have duplicated Vertices.
+*)
+Fixpoint is_a_valid_nl
+ (nl' : NeighborsList)
+ : Prop :=
+  match nl' with nl v' l' =>
+    is_a_valid_vl l'
+  end.
+
+Example is_a_valid_nl_test_1:
+  is_a_valid_nl
+    (1 -> [2; 3; 4]) = True.
+Proof. simpl. reflexivity. Qed.
+
+Example is_a_valid_nl_test_2:
+  is_a_valid_nl
+    (1 -> [2; 3; 4; 3]) = False.
+Proof. simpl. reflexivity. Qed.
 
 (* AdjacencyList functions *)
 
