@@ -7,6 +7,23 @@ Require Export Permutation.
 
 Section SEARCH.
 
+Fixpoint bool_to_prop
+ (b : bool)
+ : Prop :=
+  if b then True else False.
+
+Compute(bool_to_prop(true)).
+
+Fixpoint ble_nat (n m : nat) : bool :=
+  match n with
+  | O => true
+  | S n' =>
+      match m with
+      | O => false
+      | S m' => ble_nat n' m'
+      end
+  end.
+
 (* Vertex functions *)
 
 (*
@@ -28,6 +45,20 @@ Fixpoint beq_vertex
  : bool :=
   match a with v an =>
     match b with v bn => beq_nat an bn
+    end
+  end.
+
+(*
+ble_vertex:
+  Given two Vertices 'a' and 'b',
+  calculates if 'a' is equal or less
+  than 'b'.
+*)
+Fixpoint ble_vertex
+ (a b : Vertex)
+ : bool :=
+  match a with v an =>
+    match b with v bn => ble_nat an bn
     end
   end.
 
@@ -69,7 +100,6 @@ vl_contains_vertex:
   Same as 'b_vl_contains_vertex', but
   returns a 'Prop'.
 *)
-
 Fixpoint vl_contains_vertex
  (v : Vertex)
  (vl : VertexList)
@@ -124,17 +154,17 @@ sort_vertex_list:
 
 Fixpoint insert_sort_vertex_list
  (v' : Vertex)
- (vl : VertexList) :=
-  match v' with v v'' =>
-    match vl with
-    | nil => (v v'') :: nil
-    | (v vlh) :: vlt =>
-        if v'' <=? vlh
-        then (v v'')
-          :: (v vlh) :: vlt
-        else (v vlh)
-          :: insert_sort_vertex_list (v v'') vlt
-    end
+ (vl : VertexList)
+ : VertexList :=
+  match vl with
+  | [] => [v']
+  | (v vlh) :: vlt =>
+      match v' with v v'' =>
+          if v'' <=? vlh
+          then (v v'') :: (v vlh) :: vlt
+          else (v vlh)
+            :: insert_sort_vertex_list (v v'') vlt
+      end
   end.
 
 Fixpoint sort_vertex_list
@@ -153,13 +183,59 @@ Example sort_vertex_list_test_1:
 Proof. simpl. reflexivity. Qed.
 
 (*
+is_sorted:
+*)
+Fixpoint is_sorted
+ (vl : VertexList)
+  : Prop :=
+  match vl with
+  | [] => True
+  | vlh :: vlt =>
+      match vlt with
+      | [] => True
+      | vlh' :: vlt' =>
+          if ble_vertex vlh vlh'
+          then is_sorted vlt
+          else False
+      end
+  end.
+
+Example is_sorted_test_1:
+  is_sorted
+    [v 3; v 5; v 1] = False.
+Proof. simpl. reflexivity. Qed.
+Example is_sorted_test_2:
+  is_sorted
+    [v 3; v 5; v 10] = True.
+Proof. simpl. reflexivity. Qed.
+(*
+Lemma insert_sorted_vertex_list_always_sorted:
+  forall (vl : VertexList) (v : Vertex),
+  is_sorted vl -> is_sorted (insert_sort_vertex_list v vl).
+Proof.
+  intros. induction vl.
+  - simpl. reflexivity.
+  - 
+*)
+(*
+sorted_vertex_list_always_sorted:
+*)
+(*
+Theorem sorted_vertex_list_always_sorted:
+  forall (vl : VertexList),
+  is_sorted (sort_vertex_list vl).
+Proof.
+  intros. induction vl.
+  - simpl. reflexivity.
+  -*)
+
+(*
 is_a_valid_vl:
   Given an VertexList 'vl', tells if 'vl'
   is a valid VertexList.
   What is a valid VertexList?
   - It must not have duplicated Vertices.
 *)
-
 Fixpoint is_a_valid_vl
  (vl : VertexList)
  : Prop :=
@@ -478,6 +554,7 @@ dfs_bfs_equal:
 Theorem dfs_bfs_equal :
   forall (al : AdjacencyList) (v : Vertex),
   sort_vertex_list (dfs al v) = sort_vertex_list (bfs al v).
-Proof. Admitted.
+Proof.
+  intros. destruct al.
 
 End SEARCH.
