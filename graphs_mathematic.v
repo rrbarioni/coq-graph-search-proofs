@@ -23,10 +23,14 @@ Inductive EdgeList : list Edge -> Prop :=
       forall (el : list Edge) (e : Edge),
       ~ In e el -> EdgeList (e :: el).
 
-Inductive le : nat -> nat -> Prop :=
-  | le_n : forall n, le n n
-  | le_S : forall n m, (le n m) -> (le n (S m)).
-
+Inductive Graph : list Vertex -> list Edge -> Prop :=
+  | g_empty : Graph [] []
+  | g_vertex :
+      forall (vl : list Vertex) (el : list Edge) (g : Graph vl el) (v : Vertex),
+      ~ In v vl -> Graph (v :: vl) el
+  | g_edge :
+      forall (vl : list Vertex) (el : list Edge) (g : Graph vl el) (e : Edge),
+      ~ In e el -> Graph vl (e :: el).
 
 
 
