@@ -6,6 +6,30 @@ Export ListNotations.
 Require Export Permutation.
 Require Export Peano_dec.
 
+(* Por enquanto, tô só rascunhando aqui. *)
+
+Definition Vertex : Type := nat.
+Definition Edge : Type := Vertex -> Vertex.
+
+Inductive VertexList : list Vertex -> Prop :=
+  | vl_empty : VertexList []
+  | vl_insert :
+      forall (vl : list Vertex) (v : Vertex),
+      ~ In v vl -> VertexList (v :: vl).
+
+Inductive EdgeList : list Edge -> Prop :=
+  | el_empty : EdgeList []
+  | el_insert :
+      forall (el : list Edge) (e : Edge),
+      ~ In e el -> EdgeList (e :: el).
+
+Inductive le : nat -> nat -> Prop :=
+  | le_n : forall n, le n n
+  | le_S : forall n m, (le n m) -> (le n (S m)).
+
+
+
+
 Inductive Vertex : Type := v : nat -> Vertex.
 Inductive Edge : Type := e : Vertex -> Vertex -> Edge.
 
