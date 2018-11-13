@@ -206,26 +206,6 @@ Example is_sorted_test_2:
   is_sorted
     [v 3; v 5; v 10] = True.
 Proof. simpl. reflexivity. Qed.
-(*
-Lemma insert_sorted_vertex_list_always_sorted:
-  forall (vl : VertexList) (v : Vertex),
-  is_sorted vl -> is_sorted (insert_sort_vertex_list v vl).
-Proof.
-  intros. induction vl.
-  - simpl. reflexivity.
-  - 
-*)
-(*
-sorted_vertex_list_always_sorted:
-*)
-(*
-Theorem sorted_vertex_list_always_sorted:
-  forall (vl : VertexList),
-  is_sorted (sort_vertex_list vl).
-Proof.
-  intros. induction vl.
-  - simpl. reflexivity.
-  -*)
 
 (*
 is_a_valid_vl:
@@ -313,21 +293,6 @@ Definition AdjacencyList := list NeighborsList.
 Compute ([1 -> [2; 3; 4]; 2 -> [1; 3; 5]]).
 
 (*
-is_a_valid_al:
-  Given an AdjacencyList 'al', tells if 'al'
-  is a valid graph.
-  What is a valid graph?
-  - All NeighborLists must not have
-    duplicated Vertices;
-  - If a Vertex 'v' appears in any NeighborList,
-    then 'v' must has its own NeighborList in
-    the AdjacencyList.
-*)(*
-Fixpoint is_a_valid_al
- (al : AdjacencyList)
- : Prop := *)
-
-(*
 get_neighbors_list:
   Given an AdjacencyList 'al' and a Vertex 'v',
   returns the NeighborList of 'v' in 'al'.
@@ -368,7 +333,6 @@ Fixpoint b_al_contains_vertex
       then true
       else b_al_contains_vertex v alt
   end.
-
 
 (*
 al_contains_vertex:
@@ -542,13 +506,15 @@ Proof. simpl. reflexivity. Qed.
 DFS == BFS:
 *)
 
-Theorem dfs_extend :
+Lemma bfs_extend :
+  forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
+  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) -> In v2 (bfs (nl :: al) v1).
+Proof. Admitted.
+
+Lemma dfs_extend_back :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
   In v2 (dfs (nl :: al) v1) -> In v2 (dfs [nl] v1) \/ In v2 (dfs al v1).
-Proof.
-  intros. induction al.
-  - left. assumption.
-  - 
+Proof. Admitted.
 
 (*
 dfs_bfs_equal:
@@ -562,7 +528,8 @@ Theorem dfs_bfs_equal :
   In v2 (dfs al v1) -> In v2 (bfs al v1).
 Proof.
   intros. induction al.
-  - simpl. simpl in H. apply H.
-  - 
+  - simpl. assumption.
+  - apply (bfs_extend al a v1 v2).
+    apply (dfs_extend_back al a v1 v2) in H.
 
 End SEARCH.
