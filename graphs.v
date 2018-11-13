@@ -12,8 +12,6 @@ Fixpoint bool_to_prop
  : Prop :=
   if b then True else False.
 
-Compute(bool_to_prop(true)).
-
 Fixpoint ble_nat (n m : nat) : bool :=
   match n with
   | O => true
@@ -544,6 +542,14 @@ Proof. simpl. reflexivity. Qed.
 DFS == BFS:
 *)
 
+Theorem dfs_extend :
+  forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
+  In v2 (dfs (nl :: al) v1) -> In v2 (dfs [nl] v1) \/ In v2 (dfs al v1).
+Proof.
+  intros. induction al.
+  - left. assumption.
+  - 
+
 (*
 dfs_bfs_equal:
   For every Graph 'al' and Vertex 'v',
@@ -552,9 +558,11 @@ dfs_bfs_equal:
   the BFS of 'al' starting from 'v'.
 *)
 Theorem dfs_bfs_equal :
-  forall (al : AdjacencyList) (v : Vertex),
-  sort_vertex_list (dfs al v) = sort_vertex_list (bfs al v).
+  forall (al : AdjacencyList) (v1 v2 : Vertex),
+  In v2 (dfs al v1) -> In v2 (bfs al v1).
 Proof.
-  intros. destruct al.
+  intros. induction al.
+  - simpl. simpl in H. apply H.
+  - 
 
 End SEARCH.
