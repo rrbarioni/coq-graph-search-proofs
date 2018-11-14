@@ -8,22 +8,33 @@ Require Export Permutation.
 Section SEARCH.
 
 (*
+Vertex:
   A Vertex contains a natural value,
   representing which Vertex it is.
 *)
 Inductive Vertex : Type :=
-  | v : nat -> Vertex.
+  v : nat -> Vertex.
 
 Compute (v 3).
 
+(*
+vertex_eq_dec:
+  Given two Vertices 'v1' and 'v2', they
+  must have the same value or have
+  different values.
+*)
 Lemma vertex_eq_dec :
   forall (v1 v2 : Vertex),
   v1 = v2 \/ v1 <> v2.
 Proof.
-  intros. destruct v1. destruct v2.
-  case (eq_nat_dec n n0).
-  - intros. left. rewrite e. reflexivity.
-  - intros. right. injection. intros. contradiction.
+  intros v1 v2.
+  destruct v1 as [n1].
+  destruct v2 as [n2].
+  case (eq_nat_dec n1 n2).
+  - intros H1. left.
+    rewrite H1. reflexivity.
+  - intros H1. right.
+    injection as H2. contradiction.
 Qed.
 
 (*
@@ -32,14 +43,15 @@ beq_vertex:
   calculates if they have the same value.
 *)
 Fixpoint beq_vertex
- (a b : Vertex)
+ (v1 v2 : Vertex)
  : bool :=
-  match a with v an =>
-    match b with v bn => beq_nat an bn
+  match v1 with v n1 =>
+    match v2 with v n2 => beq_nat n1 n2
     end
   end.
 
 (*
+VertexList:
   A VertexList is a list of Vertices.
 *)
 Definition VertexList := list Vertex.
@@ -57,10 +69,10 @@ Fixpoint b_vl_contains_vertex
  : bool :=
   match vl with
   | [] => false
-  | vh :: vt =>
-    if beq_vertex v vh
+  | vlh :: vlt =>
+    if beq_vertex v vlh
     then true
-    else b_vl_contains_vertex v vt
+    else b_vl_contains_vertex v vlt
   end.
 
 Example b_vl_contains_vertex_test_1:
@@ -75,7 +87,7 @@ vl_contains_vertex:
   Same as 'b_vl_contains_vertex', but
   returns a 'Prop'.
 *)
-
+(*
 Fixpoint vl_contains_vertex
  (v : Vertex)
  (vl : VertexList)
@@ -83,6 +95,7 @@ Fixpoint vl_contains_vertex
   if b_vl_contains_vertex v vl
   then True
   else False.
+*)
 
 (*
 remove_vertex:
@@ -95,11 +108,11 @@ Fixpoint remove_vertex
  (vl : VertexList)
  : VertexList :=
   match vl with
-    | nil => nil
-    | y :: tl =>
-        if beq_vertex v y
-        then remove_vertex v tl
-        else y :: (remove_vertex v tl)
+  | [] => []
+  | vlh :: vlt =>
+      if beq_vertex v vlh
+      then remove_vertex v vlt
+      else vlh :: (remove_vertex v vlt)
   end.
 
 (*
@@ -108,12 +121,13 @@ diff_vertex_lists:
   all Vertices from 'a' which exists in 'b'.
 *)
 Fixpoint diff_vertex_lists
- (a b : VertexList)
+ (vl1 vl2 : VertexList)
  : VertexList :=
-  match b with
-  | [] => a
-  | bh :: bt =>
-      diff_vertex_lists (remove_vertex bh a) bt
+  match vl2 with
+  | [] => vl1
+  | vl2h :: vl2t =>
+      diff_vertex_lists
+        (remove_vertex vl2h vl1) vl2t
   end.
 
 Example diff_vertex_lists_test_1:
@@ -128,7 +142,7 @@ Proof. simpl. reflexivity. Qed.
   Vertex.
 *)
 Inductive NeighborsList : Type :=
-  | nl : Vertex -> VertexList -> NeighborsList.
+  nl : Vertex -> VertexList -> NeighborsList.
 
 Compute (nl (v 1) [v 3; v 5; v 10]).
 
@@ -162,9 +176,9 @@ Fixpoint get_neighbors_list
  : VertexList :=
   match al with
   | [] => []
-  | (nl v' l') :: alt =>
+  | (nl v' vl) :: alt =>
       if beq_vertex v v'
-      then l'
+      then vl
       else get_neighbors_list v alt
   end.
 
@@ -199,8 +213,8 @@ Fixpoint n_edges
  : nat :=
   match al with
   | [] => 0
-  | (nl v' l') :: alt =>
-      (length l') + (n_edges alt)
+  | (nl v' vl) :: alt =>
+      (length vl) + (n_edges alt)
   end.
 
 Example n_edges_test_1:
@@ -239,12 +253,9 @@ Fixpoint dfs_stack
       match stack with
       | [] => rev visited
       | vertex :: stack_pop =>
-          if b_vl_contains_vertex
-            vertex visited
-          then dfs_stack al
-            visited stack_pop calls'
-          else dfs_stack al
-            ([vertex] ++ visited)
+          if b_vl_contains_vertex vertex visited
+          then dfs_stack al visited stack_pop calls'
+          else dfs_stack al ([vertex] ++ visited)
             ((diff_vertex_lists (get_neighbors_list vertex al) visited) ++ stack_pop)
             calls'
       end
@@ -294,12 +305,9 @@ Fixpoint bfs_queue
       match queue with
       | [] => rev visited
       | vertex :: queue_pop =>
-          if b_vl_contains_vertex
-            vertex visited
-          then bfs_queue al
-            visited queue_pop calls'
-          else bfs_queue al
-            ([vertex] ++ visited)
+          if b_vl_contains_vertex vertex visited
+          then bfs_queue al visited queue_pop calls'
+          else bfs_queue al ([vertex] ++ visited)
             (queue_pop ++ (diff_vertex_lists (get_neighbors_list vertex al) visited))
             calls'
       end
