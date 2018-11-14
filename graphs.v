@@ -509,24 +509,38 @@ Example bfs_test_3:
 Proof. simpl. reflexivity. Qed.
 
 (*
-DFS == BFS:
+DFS = BFS:
 *)
+
+Lemma dfs_in_a_nl_is_vertex_and_its_neighbors :
+  forall (v1 v2 : Vertex) (vl : VertexList),
+  v1 = v2 -> dfs [(nl v1 vl)] v2 = v1 :: vl /\
+  ~ v1 = v2 -> dfs [(nl v1 vl)] v2 = [v2].
+Proof. Admitted.
+
+Lemma bfs_in_a_nl_is_vertex_and_its_neighbors :
+  forall (v1 v2 : Vertex) (vl : VertexList),
+  v1 = v2 -> bfs [(nl v1 vl)] v2 = v1 :: vl /\
+  ~ v1 = v2 -> bfs [(nl v1 vl)] v2 = [v2].
+Proof. Admitted.
+
+Lemma dfs_bfs_equal_in_a_nl :
+  forall (nl : NeighborsList) (v1 v2 : Vertex),
+  In v2 (dfs [nl] v1) <-> In v2 (bfs [nl] v1).
+Proof.
+  split.
+  - intros. destruct nl0.
+    Admitted.
 
 Lemma bfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1).
+  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1)
 Proof. Admitted.
 
 Lemma dfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
   In v2 (dfs [nl] v1) \/ In v2 (dfs al v1) <-> In v2 (dfs (nl :: al) v1).
 Proof. Admitted.
-
-Lemma dfs_bfs_equal_one_nl :
-  forall (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (dfs [nl] v1) <-> In v2 (bfs [nl] v1).
-Proof.
-  intros. Admitted.
 
 (*
 dfs_bfs_equal:
@@ -545,14 +559,14 @@ Proof.
     + intros. apply (bfs_extend al a v1 v2).
       apply (dfs_extend al a v1 v2) in H.
       destruct H.
-      * left. apply dfs_bfs_equal_one_nl in H. assumption.
+      * left. apply dfs_bfs_equal_in_a_nl in H. assumption.
       * right. apply IHal in H. assumption.
   - induction al.
     + intros. simpl in H. contradiction.
     + intros. apply (dfs_extend al a v1 v2).
       apply (bfs_extend al a v1 v2) in H.
       destruct H.
-      * left. apply dfs_bfs_equal_one_nl in H. assumption.
+      * left. apply dfs_bfs_equal_in_a_nl in H. assumption.
       * right. apply IHal in H. assumption.
 Qed.
 
