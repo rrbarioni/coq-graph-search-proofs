@@ -370,82 +370,117 @@ DFS = BFS:
 *)
 
 (*
-dfs_in_a_nl_is_vertex_and_its_neighbors_same:
+dfs_one_v_same:
   For a AdjacencyList with only one Vertex 'v1'
   (and its connections), the 'dfs' result of this
   AdjacencyList (starting from 'v1') is a VertexList
   containing 'v1' and its Vertex connections.
 *)
-Lemma dfs_in_a_nl_is_vertex_and_its_neighbors_same :
+Lemma dfs_one_v_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
 Proof. Admitted.
 
 (*
-dfs_in_a_nl_is_vertex_and_its_neighbors_diff:
+dfs_one_v_diff:
   For a AdjacencyList with only one Vertex 'v1'
   (and its connections), the 'dfs' result of this
   AdjacencyList (starting from a different Vertex
   'v2') is an empty VertexList.
 *)
-Lemma dfs_in_a_nl_is_vertex_and_its_neighbors_diff :
+Lemma dfs_one_v_diff :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   ~ v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = False.
 Proof. Admitted.
 
 (*
-bfs_in_a_nl_is_vertex_and_its_neighbors_same:
+bfs_one_v_same:
   For a AdjacencyList with only one Vertex 'v1'
   (and its connections), the 'bfs' result of this
   AdjacencyList (starting from 'v1') is a VertexList
   containing 'v1' and its Vertex connections.
 *)
-Lemma bfs_in_a_nl_is_vertex_and_its_neighbors_same :
+Lemma bfs_one_v_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
 Proof. Admitted.
 
 (*
-bfs_in_a_nl_is_vertex_and_its_neighbors_diff:
+bfs_one_v_diff:
   For a AdjacencyList with only one Vertex 'v1'
   (and its connections), the 'bfs' result of this
   AdjacencyList (starting from a different Vertex
   'v2') is an empty VertexList.
 *)
-Lemma bfs_in_a_nl_is_vertex_and_its_neighbors_diff :
+Lemma bfs_one_v_diff :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   ~ v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = False.
 Proof. Admitted.
 
-Lemma dfs_bfs_equal_in_a_nl :
+(*
+dfs_bfs_equal_in_a_nl:
+  For a AdjacencyList with only one NeighborsList
+  'nl', the 'dfs' result of this AdjacencyList (
+  starting from a Vertex 'v1') is the same as the
+  'bfs' result of ths AdjacencyList (starting
+  from a Vertex 'v1').
+*)
+Lemma dfs_bfs_one_v_equal :
   forall (nl : NeighborsList) (v1 v2 : Vertex),
   In v2 (dfs [nl] v1) <-> In v2 (bfs [nl] v1).
 Proof.
-  split.
-  - intros. destruct nl0.
-    case (vertex_eq_dec v0 v1).
-    + intros.
-      assert (H1 := H0).
-      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H0.
-      rewrite H0.
-      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H1.
+  (* intros nl v1 v2. split.
+  - intros H1. destruct nl as [v3 vl].
+    case (vertex_eq_dec v1 v2).
+    + intros H2.
+      assert (H3 := H2).
+      apply (bfs_one_v_same v2 v3 v1 vl) in H2.
+      rewrite H2.
+      apply (dfs_one_v_same v0 v1 v2 v3) in H1.
       rewrite H1 in H.
       assumption.
     + intros.
-      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
+      apply (dfs_one_v_diff v0 v1 v2 v3) in H0.
       rewrite H0 in H.
       contradiction.
   - intros. destruct nl0.
     case (vertex_eq_dec v0 v1).
     + intros.
       assert (H1 := H0).
-      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H0.
+      apply (dfs_one_v_same v0 v1 v2 v3) in H0.
       rewrite H0.
-      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H1.
+      apply (bfs_one_v_same v0 v1 v2 v3) in H1.
       rewrite H1 in H.
       assumption.
     + intros.
-      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
+      apply (bfs_one_v_diff v0 v1 v2 v3) in H0.
+      rewrite H0 in H.
+      contradiction. *)
+  split.
+  - intros. destruct nl0.
+    case (vertex_eq_dec v0 v1).
+    + intros.
+      assert (H1 := H0).
+      apply (bfs_one_v_same v0 v1 v2 v3) in H0.
+      rewrite H0.
+      apply (dfs_one_v_same v0 v1 v2 v3) in H1.
+      rewrite H1 in H.
+      assumption.
+    + intros.
+      apply (dfs_one_v_diff v0 v1 v2 v3) in H0.
+      rewrite H0 in H.
+      contradiction.
+  - intros. destruct nl0.
+    case (vertex_eq_dec v0 v1).
+    + intros.
+      assert (H1 := H0).
+      apply (dfs_one_v_same v0 v1 v2 v3) in H0.
+      rewrite H0.
+      apply (bfs_one_v_same v0 v1 v2 v3) in H1.
+      rewrite H1 in H.
+      assumption.
+    + intros.
+      apply (bfs_one_v_diff v0 v1 v2 v3) in H0.
       rewrite H0 in H.
       contradiction.
 Qed.
@@ -477,14 +512,14 @@ Proof.
     + intros. apply (bfs_extend al a v1 v2).
       apply (dfs_extend al a v1 v2) in H.
       destruct H.
-      * left. apply dfs_bfs_equal_in_a_nl in H. assumption.
+      * left. apply dfs_bfs_one_v_equal in H. assumption.
       * right. apply IHal in H. assumption.
   - induction al.
     + intros. simpl in H. contradiction.
     + intros. apply (dfs_extend al a v1 v2).
       apply (bfs_extend al a v1 v2) in H.
       destruct H.
-      * left. apply dfs_bfs_equal_in_a_nl in H. assumption.
+      * left. apply dfs_bfs_one_v_equal in H. assumption.
       * right. apply IHal in H. assumption.
 Qed.
 
