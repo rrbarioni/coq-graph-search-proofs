@@ -166,9 +166,30 @@ Definition AdjacencyList := list NeighborsList.
 Compute ([1 -> [2; 3; 4]; 2 -> [1; 3; 5]]).
 
 (*
+get_vertex_list:
+  Given an AdjacencyList 'al', returns a
+  VertexList containing the Vertex of all
+  NeighborsList in 'al'.
+*)
+Fixpoint get_vertex_list
+ (al : AdjacencyList)
+ : VertexList :=
+  match al with
+  | [] => []
+  | (nl v' vl) :: alt =>
+      v' :: get_vertex_list alt
+  end.
+
+Example get_vertex_list_test_1:
+  get_vertex_list
+    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]]
+    = [v 1; v 2].
+Proof. simpl. reflexivity. Qed.
+
+(*
 get_neighbors_list:
   Given an AdjacencyList 'al' and a Vertex 'v',
-  returns the NeighborList of 'v' in 'al'.
+  returns the NeighborsList of 'v' in 'al'.
 *)
 Fixpoint get_neighbors_list
  (v : Vertex)
@@ -265,13 +286,19 @@ Fixpoint dfs
  (al : AdjacencyList)
  (start : Vertex)
  : VertexList :=
-  dfs_stack al [] [start]
-    ((n_vertices al) + (n_edges al)).
+  if b_vl_contains_vertex start (get_vertex_list al)
+  then dfs_stack al [] [start] ((n_vertices al) + (n_edges al))
+  else [].
 
 Example dfs_test_1:
   dfs
     ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 2)
     = [v 2; v 0; v 1; v 3].
+Proof. simpl. reflexivity. Qed.
+Example dfs_test_2:
+  dfs
+    ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 6)
+    = [].
 Proof. simpl. reflexivity. Qed.
 
 (*
@@ -317,24 +344,19 @@ Fixpoint bfs
  (al : AdjacencyList)
  (start : Vertex)
  : VertexList :=
-  bfs_queue al [] [start]
-    ((n_vertices al) + (n_edges al)).
+  if b_vl_contains_vertex start (get_vertex_list al)
+  then bfs_queue al [] [start] ((n_vertices al) + (n_edges al))
+  else [].
 
 Example bfs_test_1:
   bfs
     ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 2)
     = [v 2; v 0; v 3; v 1].
 Proof. simpl. reflexivity. Qed.
-
-(*
-  If a Vertex does not belong to the graph,
-  searches returns a list with only this
-  Vertex.
-*)
 Example bfs_test_2:
   bfs
     ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 5)
-    = [v 5].
+    = [].
 Proof. simpl. reflexivity. Qed.
 
 Example bfs_test_3:
@@ -347,24 +369,52 @@ Proof. simpl. reflexivity. Qed.
 DFS = BFS:
 *)
 
+(*
+dfs_in_a_nl_is_vertex_and_its_neighbors_same:
+  For a AdjacencyList with only one Vertex 'v1'
+  (and its connections), the 'dfs' result of this
+  AdjacencyList (starting from 'v1') is a VertexList
+  containing 'v1' and its Vertex connections.
+*)
 Lemma dfs_in_a_nl_is_vertex_and_its_neighbors_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
 Proof. Admitted.
 
+(*
+dfs_in_a_nl_is_vertex_and_its_neighbors_diff:
+  For a AdjacencyList with only one Vertex 'v1'
+  (and its connections), the 'dfs' result of this
+  AdjacencyList (starting from a different Vertex
+  'v2') is an empty VertexList.
+*)
 Lemma dfs_in_a_nl_is_vertex_and_its_neighbors_diff :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  ~ v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 [v2].
+  ~ v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = False.
 Proof. Admitted.
 
+(*
+bfs_in_a_nl_is_vertex_and_its_neighbors_same:
+  For a AdjacencyList with only one Vertex 'v1'
+  (and its connections), the 'bfs' result of this
+  AdjacencyList (starting from 'v1') is a VertexList
+  containing 'v1' and its Vertex connections.
+*)
 Lemma bfs_in_a_nl_is_vertex_and_its_neighbors_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
 Proof. Admitted.
 
+(*
+bfs_in_a_nl_is_vertex_and_its_neighbors_diff:
+  For a AdjacencyList with only one Vertex 'v1'
+  (and its connections), the 'bfs' result of this
+  AdjacencyList (starting from a different Vertex
+  'v2') is an empty VertexList.
+*)
 Lemma bfs_in_a_nl_is_vertex_and_its_neighbors_diff :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  ~ v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = In v3 [v2].
+  ~ v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = False.
 Proof. Admitted.
 
 Lemma dfs_bfs_equal_in_a_nl :
@@ -382,12 +432,9 @@ Proof.
       rewrite H1 in H.
       assumption.
     + intros.
-      assert (H1 := H0).
-      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
-      rewrite H0.
-      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H1.
-      rewrite H1 in H.
-      assumption.
+      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
+      rewrite H0 in H.
+      contradiction.
   - intros. destruct nl0.
     case (vertex_eq_dec v0 v1).
     + intros.
@@ -398,12 +445,9 @@ Proof.
       rewrite H1 in H.
       assumption.
     + intros.
-      assert (H1 := H0).
-      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
-      rewrite H0.
-      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H1.
-      rewrite H1 in H.
-      assumption.
+      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
+      rewrite H0 in H.
+      contradiction.
 Qed.
 
 Lemma bfs_extend :
