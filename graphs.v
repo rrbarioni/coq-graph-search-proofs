@@ -502,6 +502,12 @@ Example bfs_test_2:
     = [v 5].
 Proof. simpl. reflexivity. Qed.
 
+Example bfs_test_3:
+  bfs
+    ([0 -> [1; 2]]) (v 0)
+    = [v 0; v 1; v 2].
+Proof. simpl. reflexivity. Qed.
+
 (*
 DFS == BFS:
 *)
@@ -516,6 +522,12 @@ Lemma dfs_extend :
   In v2 (dfs [nl] v1) \/ In v2 (dfs al v1) <-> In v2 (dfs (nl :: al) v1).
 Proof. Admitted.
 
+Lemma dfs_bfs_equal_one_nl :
+  forall (nl : NeighborsList) (v1 v2 : Vertex),
+  In v2 (dfs [nl] v1) <-> In v2 (bfs [nl] v1).
+Proof.
+  intros. Admitted.
+
 (*
 dfs_bfs_equal:
   For every Graph 'al' and Vertex 'v',
@@ -525,10 +537,23 @@ dfs_bfs_equal:
 *)
 Theorem dfs_bfs_equal :
   forall (al : AdjacencyList) (v1 v2 : Vertex),
-  In v2 (dfs al v1) -> In v2 (bfs al v1).
+  In v2 (dfs al v1) <-> In v2 (bfs al v1).
 Proof.
-  intros. induction dfs.
-  - simpl in H. contradiction.
-  - apply IHv0.
+  intros. split.
+  - induction al.
+    + intros. simpl in H. contradiction.
+    + intros. apply (bfs_extend al a v1 v2).
+      apply (dfs_extend al a v1 v2) in H.
+      destruct H.
+      * left. apply dfs_bfs_equal_one_nl in H. assumption.
+      * right. apply IHal in H. assumption.
+  - induction al.
+    + intros. simpl in H. contradiction.
+    + intros. apply (dfs_extend al a v1 v2).
+      apply (bfs_extend al a v1 v2) in H.
+      destruct H.
+      * left. apply dfs_bfs_equal_one_nl in H. assumption.
+      * right. apply IHal in H. assumption.
+Qed.
 
 End SEARCH.
