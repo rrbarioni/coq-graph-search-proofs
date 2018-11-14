@@ -7,23 +7,6 @@ Require Export Permutation.
 
 Section SEARCH.
 
-Fixpoint bool_to_prop
- (b : bool)
- : Prop :=
-  if b then True else False.
-
-Fixpoint ble_nat (n m : nat) : bool :=
-  match n with
-  | O => true
-  | S n' =>
-      match m with
-      | O => false
-      | S m' => ble_nat n' m'
-      end
-  end.
-
-(* Vertex functions *)
-
 (*
   A Vertex contains a natural value,
   representing which Vertex it is.
@@ -55,22 +38,6 @@ Fixpoint beq_vertex
     match b with v bn => beq_nat an bn
     end
   end.
-
-(*
-ble_vertex:
-  Given two Vertices 'a' and 'b',
-  calculates if 'a' is equal or less
-  than 'b'.
-*)
-Fixpoint ble_vertex
- (a b : Vertex)
- : bool :=
-  match a with v an =>
-    match b with v bn => ble_nat an bn
-    end
-  end.
-
-(* VertexList functions *)
 
 (*
   A VertexList is a list of Vertices.
@@ -108,6 +75,7 @@ vl_contains_vertex:
   Same as 'b_vl_contains_vertex', but
   returns a 'Prop'.
 *)
+
 Fixpoint vl_contains_vertex
  (v : Vertex)
  (vl : VertexList)
@@ -155,99 +123,6 @@ Example diff_vertex_lists_test_1:
 Proof. simpl. reflexivity. Qed.
 
 (*
-sort_vertex_list:
-  Given a VertexList 'vl', returns 'vl' with its
-  values sorted.
-*)
-
-Fixpoint insert_sort_vertex_list
- (v' : Vertex)
- (vl : VertexList)
- : VertexList :=
-  match vl with
-  | [] => [v']
-  | (v vlh) :: vlt =>
-      match v' with v v'' =>
-          if v'' <=? vlh
-          then (v v'') :: (v vlh) :: vlt
-          else (v vlh)
-            :: insert_sort_vertex_list (v v'') vlt
-      end
-  end.
-
-Fixpoint sort_vertex_list
- (vl: VertexList)
- : VertexList :=
-  match vl with
-  | [] => []
-  | vlh :: vlt =>
-      insert_sort_vertex_list
-        vlh (sort_vertex_list vlt)
-  end.
-
-Example sort_vertex_list_test_1:
-  sort_vertex_list
-    [v 3; v 5; v 1] = [v 1; v 3; v 5].
-Proof. simpl. reflexivity. Qed.
-
-(*
-is_sorted:
-*)
-Fixpoint is_sorted
- (vl : VertexList)
-  : Prop :=
-  match vl with
-  | [] => True
-  | vlh :: vlt =>
-      match vlt with
-      | [] => True
-      | vlh' :: vlt' =>
-          if ble_vertex vlh vlh'
-          then is_sorted vlt
-          else False
-      end
-  end.
-
-Example is_sorted_test_1:
-  is_sorted
-    [v 3; v 5; v 1] = False.
-Proof. simpl. reflexivity. Qed.
-Example is_sorted_test_2:
-  is_sorted
-    [v 3; v 5; v 10] = True.
-Proof. simpl. reflexivity. Qed.
-
-(*
-is_a_valid_vl:
-  Given an VertexList 'vl', tells if 'vl'
-  is a valid VertexList.
-  What is a valid VertexList?
-  - It must not have duplicated Vertices.
-*)
-Fixpoint is_a_valid_vl
- (vl : VertexList)
- : Prop :=
-  match vl with
-  | [] => True
-  | vlh :: vlt =>
-      if b_vl_contains_vertex vlh vlt
-      then False
-      else is_a_valid_vl vlt
-  end.
-
-Example is_a_valid_vl_test_1:
-  is_a_valid_vl
-    [v 3; v 5; v 1] = True.
-Proof. simpl. reflexivity. Qed.
-
-Example is_a_valid_vl_test_2:
-  is_a_valid_vl
-    [v 3; v 5; v 1; v 3] = False.
-Proof. simpl. reflexivity. Qed.
-
-(* NeighborsList functions *)
-
-(*
   A NeighborsList represents all the vertices
   (VertexList) that are pointed by an specific
   Vertex.
@@ -267,32 +142,6 @@ Notation "a -> [ b ; .. ; c ]" :=
 Notation "a -> [ ]" :=
   (nl (v a) nil)
   (at level 60, right associativity).
-
-(*
-is_a_valid_nl:
-  Given an NeighborList 'nl', tells if 'nl'
-  is a valid NeighborList.
-  What is a valid NeighborList?
-  - It must not have duplicated Vertices.
-*)
-Fixpoint is_a_valid_nl
- (nl' : NeighborsList)
- : Prop :=
-  match nl' with nl v' l' =>
-    is_a_valid_vl l'
-  end.
-
-Example is_a_valid_nl_test_1:
-  is_a_valid_nl
-    (1 -> [2; 3; 4]) = True.
-Proof. simpl. reflexivity. Qed.
-
-Example is_a_valid_nl_test_2:
-  is_a_valid_nl
-    (1 -> [2; 3; 4; 3]) = False.
-Proof. simpl. reflexivity. Qed.
-
-(* AdjacencyList functions *)
 
 (*
   An AdjacencyList is the representation of a
@@ -325,38 +174,6 @@ Example get_neighbors_list_test_1:
     [1 -> [2; 3; 4]; 2 -> [1; 3; 5]]
     = [v 1; v 3; v 5].
 Proof. simpl. reflexivity. Qed.
-
-(*
-b_al_contains_vertex:
-  Given a Vertex 'v' and an AdjacencyList
-  'al', checks if 'al' has a Vertex 'v'.
-*)
-
-Fixpoint b_al_contains_vertex
- (v : Vertex)
- (al : AdjacencyList)
- : bool :=
-  match al with
-  | [] => false
-  | (nl v' l') :: alt =>
-      if beq_vertex v v'
-      then true
-      else b_al_contains_vertex v alt
-  end.
-
-(*
-al_contains_vertex:
-  Same as 'b_al_contains_vertex', but
-  returns a 'Prop'.
-*)
-
-Fixpoint al_contains_vertex
- (v : Vertex)
- (al : AdjacencyList)
- : Prop :=
-  if b_al_contains_vertex v al
-  then True
-  else False.
 
 (*
 n_vertices:
