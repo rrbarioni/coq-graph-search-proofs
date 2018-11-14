@@ -508,12 +508,12 @@ DFS == BFS:
 
 Lemma bfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) -> In v2 (bfs (nl :: al) v1).
+  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1).
 Proof. Admitted.
 
-Lemma dfs_extend_back :
+Lemma dfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (dfs (nl :: al) v1) -> In v2 (dfs [nl] v1) \/ In v2 (dfs al v1).
+  In v2 (dfs [nl] v1) \/ In v2 (dfs al v1) <-> In v2 (dfs (nl :: al) v1).
 Proof. Admitted.
 
 (*
@@ -527,9 +527,8 @@ Theorem dfs_bfs_equal :
   forall (al : AdjacencyList) (v1 v2 : Vertex),
   In v2 (dfs al v1) -> In v2 (bfs al v1).
 Proof.
-  intros. induction al.
-  - simpl. assumption.
-  - apply (bfs_extend al a v1 v2).
-    apply (dfs_extend_back al a v1 v2) in H.
+  intros. induction dfs.
+  - simpl in H. contradiction.
+  - apply IHv0.
 
 End SEARCH.
