@@ -33,6 +33,16 @@ Inductive Vertex : Type :=
 
 Compute (v 3).
 
+Lemma vertex_eq_dec :
+  forall (v1 v2 : Vertex),
+  v1 = v2 \/ v1 <> v2.
+Proof.
+  intros. destruct v1. destruct v2.
+  case (eq_nat_dec n n0).
+  - intros. left. rewrite e. reflexivity.
+  - intros. right. injection. intros. contradiction.
+Qed.
+
 (*
 beq_vertex:
   Given two Vertices 'a' and 'b',
@@ -512,16 +522,24 @@ Proof. simpl. reflexivity. Qed.
 DFS = BFS:
 *)
 
-Lemma dfs_in_a_nl_is_vertex_and_its_neighbors :
-  forall (v1 v2 : Vertex) (vl : VertexList),
-  v1 = v2 -> dfs [(nl v1 vl)] v2 = v1 :: vl /\
-  ~ v1 = v2 -> dfs [(nl v1 vl)] v2 = [v2].
+Lemma dfs_in_a_nl_is_vertex_and_its_neighbors_same :
+  forall (v1 v2 v3 : Vertex) (vl : VertexList),
+  v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
 Proof. Admitted.
 
-Lemma bfs_in_a_nl_is_vertex_and_its_neighbors :
-  forall (v1 v2 : Vertex) (vl : VertexList),
-  v1 = v2 -> bfs [(nl v1 vl)] v2 = v1 :: vl /\
-  ~ v1 = v2 -> bfs [(nl v1 vl)] v2 = [v2].
+Lemma dfs_in_a_nl_is_vertex_and_its_neighbors_diff :
+  forall (v1 v2 v3 : Vertex) (vl : VertexList),
+  ~ v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 [v2].
+Proof. Admitted.
+
+Lemma bfs_in_a_nl_is_vertex_and_its_neighbors_same :
+  forall (v1 v2 v3 : Vertex) (vl : VertexList),
+  v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
+Proof. Admitted.
+
+Lemma bfs_in_a_nl_is_vertex_and_its_neighbors_diff :
+  forall (v1 v2 v3 : Vertex) (vl : VertexList),
+  ~ v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = In v3 [v2].
 Proof. Admitted.
 
 Lemma dfs_bfs_equal_in_a_nl :
@@ -530,11 +548,42 @@ Lemma dfs_bfs_equal_in_a_nl :
 Proof.
   split.
   - intros. destruct nl0.
-    Admitted.
+    case (vertex_eq_dec v0 v1).
+    + intros.
+      assert (H1 := H0).
+      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H0.
+      rewrite H0.
+      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H1.
+      rewrite H1 in H.
+      assumption.
+    + intros.
+      assert (H1 := H0).
+      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
+      rewrite H0.
+      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H1.
+      rewrite H1 in H.
+      assumption.
+  - intros. destruct nl0.
+    case (vertex_eq_dec v0 v1).
+    + intros.
+      assert (H1 := H0).
+      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H0.
+      rewrite H0.
+      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_same v0 v1 v2 v3) in H1.
+      rewrite H1 in H.
+      assumption.
+    + intros.
+      assert (H1 := H0).
+      apply (dfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H0.
+      rewrite H0.
+      apply (bfs_in_a_nl_is_vertex_and_its_neighbors_diff v0 v1 v2 v3) in H1.
+      rewrite H1 in H.
+      assumption.
+Qed.
 
 Lemma bfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1)
+  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1).
 Proof. Admitted.
 
 Lemma dfs_extend :
