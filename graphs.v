@@ -429,35 +429,9 @@ Lemma dfs_bfs_one_v_equal :
   forall (nl : NeighborsList) (v1 v2 : Vertex),
   In v2 (dfs [nl] v1) <-> In v2 (bfs [nl] v1).
 Proof.
-  (* intros nl v1 v2. split.
-  - intros H1. destruct nl as [v3 vl].
-    case (vertex_eq_dec v1 v2).
-    + intros H2.
-      assert (H3 := H2).
-      apply (bfs_one_v_same v2 v3 v1 vl) in H2.
-      rewrite H2.
-      apply (dfs_one_v_same v0 v1 v2 v3) in H1.
-      rewrite H1 in H.
-      assumption.
-    + intros.
-      apply (dfs_one_v_diff v0 v1 v2 v3) in H0.
-      rewrite H0 in H.
-      contradiction.
-  - intros. destruct nl0.
-    case (vertex_eq_dec v0 v1).
-    + intros.
-      assert (H1 := H0).
-      apply (dfs_one_v_same v0 v1 v2 v3) in H0.
-      rewrite H0.
-      apply (bfs_one_v_same v0 v1 v2 v3) in H1.
-      rewrite H1 in H.
-      assumption.
-    + intros.
-      apply (bfs_one_v_diff v0 v1 v2 v3) in H0.
-      rewrite H0 in H.
-      contradiction. *)
   split.
-  - intros. destruct nl0.
+  - intros.
+    destruct nl0.
     case (vertex_eq_dec v0 v1).
     + intros.
       assert (H1 := H0).
@@ -470,7 +444,8 @@ Proof.
       apply (dfs_one_v_diff v0 v1 v2 v3) in H0.
       rewrite H0 in H.
       contradiction.
-  - intros. destruct nl0.
+  - intros.
+    destruct nl0.
     case (vertex_eq_dec v0 v1).
     + intros.
       assert (H1 := H0).
@@ -485,14 +460,22 @@ Proof.
       contradiction.
 Qed.
 
-Lemma bfs_extend :
-  forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1).
-Proof. Admitted.
-
 Lemma dfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
   In v2 (dfs [nl] v1) \/ In v2 (dfs al v1) <-> In v2 (dfs (nl :: al) v1).
+Proof.
+  split.
+  - intros.
+    destruct nl0.
+    case (vertex_eq_dec v0 v1).
+    + intros.
+      destruct H.
+      * 
+Admitted.
+
+Lemma bfs_extend :
+  forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
+  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1).
 Proof. Admitted.
 
 (*
