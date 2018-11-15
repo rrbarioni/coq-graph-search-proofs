@@ -7,6 +7,15 @@ Require Export Permutation.
 
 Section SEARCH.
 
+Lemma or_with_true :
+  forall (a b : Prop),
+  a -> (a \/ b).
+Proof.
+  intros.
+  left.
+  assumption.
+Qed.
+
 (*
 Vertex:
   A Vertex contains a natural value,
@@ -50,6 +59,20 @@ Fixpoint beq_vertex
     end
   end.
 
+Lemma vertex_eq :
+  forall (v : Vertex),
+  v = v.
+Proof. Admitted.
+
+(*
+vertex_eq_bool:
+  Identity for all Vertex 'v'.
+*)
+Lemma vertex_eq_bool :
+  forall (v : Vertex),
+  beq_vertex v v = true.
+Proof. Admitted.
+
 (*
 VertexList:
   A VertexList is a list of Vertices.
@@ -81,21 +104,6 @@ Proof. simpl. reflexivity. Qed.
 Example b_vl_contains_vertex_test_2:
   b_vl_contains_vertex (v 4) [v 2; v 3; v 4] = true.
 Proof. simpl. reflexivity. Qed.
-
-(*
-vl_contains_vertex:
-  Same as 'b_vl_contains_vertex', but
-  returns a 'Prop'.
-*)
-(*
-Fixpoint vl_contains_vertex
- (v : Vertex)
- (vl : VertexList)
- : Prop :=
-  if b_vl_contains_vertex v vl
-  then True
-  else False.
-*)
 
 (*
 remove_vertex:
@@ -369,6 +377,18 @@ Proof. simpl. reflexivity. Qed.
 DFS = BFS:
 *)
 
+Lemma dfs_stack_vl_with_v :
+  forall (v : Vertex) (vl : VertexList),
+  (dfs_stack [nl v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
+  (dfs_stack [nl v vl] [v] (vl ++ []) (length vl + 0)).
+Proof. Admitted.
+
+Lemma bfs_queue_vl_with_v :
+  forall (v : Vertex) (vl : VertexList),
+  (bfs_queue [nl v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
+  (bfs_queue [nl v vl] [v] (vl ++ []) (length vl + 0)).
+Proof. Admitted.
+
 (*
 dfs_one_v_same:
   For a AdjacencyList with only one Vertex 'v1'
@@ -379,7 +399,29 @@ dfs_one_v_same:
 Lemma dfs_one_v_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
   v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
-Proof. Admitted.
+Proof.
+  intros.
+  rewrite H.
+  clear H.
+  simpl.
+  assert (H := vertex_eq_bool v2).
+  rewrite H.
+  induction vl.
+  - simpl. reflexivity.
+  - case (vertex_eq_dec a v2).
+    + intros.
+      rewrite H0.
+      simpl.
+      rewrite H.
+      assert (H1 := (dfs_stack_vl_with_v v2 vl)).
+      rewrite H1.
+      rewrite IHvl.
+      case (vertex_eq_dec v2 v3).
+      * intros.
+        rewrite H2.
+        simpl.
+        
+Admitted.
 
 (*
 dfs_one_v_diff:
@@ -481,21 +523,35 @@ Theorem dfs_bfs_equal :
   forall (al : AdjacencyList) (v1 v2 : Vertex),
   In v2 (dfs al v1) <-> In v2 (bfs al v1).
 Proof.
-  intros. split.
+  intros.
+  split.
   - induction al.
-    + intros. simpl in H. contradiction.
-    + intros. apply (bfs_extend al a v1 v2).
+    + intros.
+      simpl in H.
+      contradiction.
+    + intros.
+      apply (bfs_extend al a v1 v2).
       apply (dfs_extend al a v1 v2) in H.
       destruct H.
-      * left. apply dfs_bfs_one_v_equal in H. assumption.
-      * right. apply IHal in H. assumption.
+      * left.
+        apply dfs_bfs_one_v_equal in H.
+        assumption.
+      * right.
+        apply IHal in H. assumption.
   - induction al.
-    + intros. simpl in H. contradiction.
-    + intros. apply (dfs_extend al a v1 v2).
+    + intros.
+      simpl in H.
+      contradiction.
+    + intros.
+      apply (dfs_extend al a v1 v2).
       apply (bfs_extend al a v1 v2) in H.
       destruct H.
-      * left. apply dfs_bfs_one_v_equal in H. assumption.
-      * right. apply IHal in H. assumption.
+      * left.
+        apply dfs_bfs_one_v_equal in H.
+        assumption.
+      * right.
+        apply IHal in H.
+        assumption.
 Qed.
 
 End SEARCH.
