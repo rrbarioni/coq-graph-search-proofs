@@ -463,15 +463,7 @@ Qed.
 Lemma dfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
   In v2 (dfs [nl] v1) \/ In v2 (dfs al v1) <-> In v2 (dfs (nl :: al) v1).
-Proof.
-  split.
-  - intros.
-    destruct nl0.
-    case (vertex_eq_dec v0 v1).
-    + intros.
-      destruct H.
-      * 
-Admitted.
+Proof. Admitted.
 
 Lemma bfs_extend :
   forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
