@@ -420,6 +420,7 @@ Proof.
       * intros.
         rewrite H2.
         simpl.
+        assert (H3 := vertex_eq v3).
         
 Admitted.
 
