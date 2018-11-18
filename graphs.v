@@ -375,41 +375,19 @@ vt: target vertex
 *)
 Lemma dfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  In vt (dfs ((al val vl) :: g) val) \/ In vt (dfs g vg) <->
+  In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
   In vt (dfs ((al val vl) :: g) vg).
 Proof. Admitted.
 
 Lemma bfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  In vt (bfs ((al val vl) :: g) val) \/ In vt (bfs g vg) <->
+  In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val)  <->
   In vt (bfs ((al val vl) :: g) vg).
 Proof. Admitted.
 
 Lemma unfold_impl :
   forall (a b : Prop),
   (a -> b) -> (~ a \/ b).
-Proof. Admitted.
-
-Lemma dfs_bfs_one_v_equal :
-  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  (In vt (dfs g vg) -> In vt (bfs g vg)) ->
-  In vt (dfs (al val vl :: g) val) ->
-  In vt (bfs (al val vl :: g) val).
-Proof.
-  intros.
-  apply unfold_impl in H.
-  destruct H.
-  - assert (H1 := dfs_transitivity g vl vg val vt).
-    destruct H1.
-    
-
-Admitted.
-
-Lemma bfs_dfs_one_v_equal :
-  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  (In vt (bfs g vg) -> In vt (dfs g vg)) ->
-  In vt (bfs (al val vl :: g) val) ->
-  In vt (dfs (al val vl :: g) val).
 Proof. Admitted.
 
 Theorem dfs_bfs_equal :
@@ -427,29 +405,7 @@ Proof.
       apply (bfs_transitivity g vl vg val vt).
       apply (dfs_transitivity g vl vg val vt) in H.
       destruct H.
-      * left.
-        apply (dfs_bfs_one_v_equal g vl vg val vt).
-        { assumption. }
-        { assumption. }
-      * right.
-        apply IHg in H.
-        assumption.
-  - induction g as [| al g].
-    + intros.
-      simpl in H.
-      contradiction.
-    + intros.
-      destruct al as [val vl].
-      apply (dfs_transitivity g vl vg val vt).
-      apply (bfs_transitivity g vl vg val vt) in H.
-      destruct H.
-      * left.
-        apply (bfs_dfs_one_v_equal g vl vg val vt).
-        { assumption. }
-        { assumption. }
-      * right.
-        apply IHg in H.
-        assumption.
-Qed.
+      split.
+      Admitted.
 
 End SEARCH.
