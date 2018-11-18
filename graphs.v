@@ -136,47 +136,46 @@ Example diff_vertex_lists_test_1:
 Proof. simpl. reflexivity. Qed.
 
 (*
-  A NeighborsList represents all the vertices
+  A AdjacencyList represents all the vertices
   (VertexList) that are pointed by an specific
   Vertex.
 *)
-Inductive NeighborsList : Type :=
-  nl : Vertex -> VertexList -> NeighborsList.
+Inductive AdjacencyList : Type :=
+  al : Vertex -> VertexList -> AdjacencyList.
 
-Compute (nl (v 1) [v 3; v 5; v 10]).
+Compute (al (v 1) [v 3; v 5; v 10]).
 
 (*
   Syntactic sugar for representing a
   NeighborsList.
 *)
 Notation "a -> [ b ; .. ; c ]" :=
-  (nl (v a) (cons (v b) .. (cons (v c) nil) ..))
+  (al (v a) (cons (v b) .. (cons (v c) nil) ..))
   (at level 60, right associativity).
 Notation "a -> [ ]" :=
-  (nl (v a) nil)
+  (al (v a) nil)
   (at level 60, right associativity).
 
 (*
-  An AdjacencyList is the representation of a
-  graph; it is a list of NeighborsList.
+  A Graph is a list of AdjacencyList.
 *)
-Definition AdjacencyList := list NeighborsList.
+Definition Graph := list AdjacencyList.
 
 Compute ([1 -> [2; 3; 4]; 2 -> [1; 3; 5]]).
 
 (*
 get_vertex_list:
-  Given an AdjacencyList 'al', returns a
+  Given an Graph 'g', returns a
   VertexList containing the Vertex of all
-  NeighborsList in 'al'.
+  AdjacencyList in 'g'.
 *)
 Fixpoint get_vertex_list
- (al : AdjacencyList)
+ (g : Graph)
  : VertexList :=
-  match al with
+  match g with
   | [] => []
-  | (nl v' vl) :: alt =>
-      v' :: get_vertex_list alt
+  | (al v' vl) :: gt =>
+      v' :: get_vertex_list gt
   end.
 
 Example get_vertex_list_test_1:
@@ -186,24 +185,24 @@ Example get_vertex_list_test_1:
 Proof. simpl. reflexivity. Qed.
 
 (*
-get_neighbors_list:
-  Given an AdjacencyList 'al' and a Vertex 'v',
-  returns the NeighborsList of 'v' in 'al'.
+get_adjacency_list:
+  Given a Graph 'g' and a Vertex 'v',
+  returns the AdjacencyList of 'v' in 'g'.
 *)
-Fixpoint get_neighbors_list
+Fixpoint get_adjacency_list
  (v : Vertex)
- (al : AdjacencyList)
+ (g : Graph)
  : VertexList :=
-  match al with
+  match g with
   | [] => []
-  | (nl v' vl) :: alt =>
+  | (al v' vl) :: gt =>
       if beq_vertex v v'
       then vl
-      else get_neighbors_list v alt
+      else get_adjacency_list v gt
   end.
 
-Example get_neighbors_list_test_1:
-  get_neighbors_list
+Example get_adjacency_list_test_1:
+  get_adjacency_list
     (v 2)
     [1 -> [2; 3; 4]; 2 -> [1; 3; 5]]
     = [v 1; v 3; v 5].
@@ -211,12 +210,13 @@ Proof. simpl. reflexivity. Qed.
 
 (*
 n_vertices:
-  Given an AdjacencyList 'al', returns the
-  number of vertices in 'al'.
+  Given a Graph 'g', returns the
+  number of vertices in 'g'.
 *)
 Fixpoint n_vertices
- (al : AdjacencyList)
- : nat := length al.
+ (g : Graph)
+ : nat :=
+  length g.
 
 Example n_vertices_test_1:
   n_vertices
@@ -225,16 +225,16 @@ Proof. simpl. reflexivity. Qed.
 
 (*
 n_vertices:
-  Given an AdjacencyList 'al', returns the
-  number of edges in 'al'.
+  Given a Graph 'g', returns the
+  number of edges in 'g'.
 *)
 Fixpoint n_edges
- (al : AdjacencyList)
+ (g : Graph)
  : nat :=
-  match al with
+  match g with
   | [] => 0
-  | (nl v' vl) :: alt =>
-      (length vl) + (n_edges alt)
+  | (al v' vl) :: gt =>
+      (length vl) + (n_edges gt)
   end.
 
 Example n_edges_test_1:
@@ -263,7 +263,7 @@ def dfs(graph, start):
 *)
 
 Fixpoint dfs_stack
- (al : AdjacencyList)
+ (g : Graph)
  (visited stack : VertexList)
  (calls : nat)
  : VertexList :=
@@ -274,19 +274,19 @@ Fixpoint dfs_stack
       | [] => rev visited
       | vertex :: stack_pop =>
           if b_vl_contains_vertex vertex visited
-          then dfs_stack al visited stack_pop calls'
-          else dfs_stack al ([vertex] ++ visited)
-            ((diff_vertex_lists (get_neighbors_list vertex al) visited) ++ stack_pop)
+          then dfs_stack g visited stack_pop calls'
+          else dfs_stack g ([vertex] ++ visited)
+            ((diff_vertex_lists (get_adjacency_list vertex g) visited) ++ stack_pop)
             calls'
       end
   end.
 
 Fixpoint dfs
- (al : AdjacencyList)
+ (g : Graph)
  (start : Vertex)
  : VertexList :=
-  if b_vl_contains_vertex start (get_vertex_list al)
-  then dfs_stack al [] [start] ((n_vertices al) + (n_edges al))
+  if b_vl_contains_vertex start (get_vertex_list g)
+  then dfs_stack g [] [start] ((n_vertices g) + (n_edges g))
   else [].
 
 Example dfs_test_1:
@@ -321,7 +321,7 @@ def bfs(graph, start):
 *)
 
 Fixpoint bfs_queue
- (al : AdjacencyList)
+ (g : Graph)
  (visited queue : VertexList)
  (calls : nat)
  : VertexList :=
@@ -332,19 +332,19 @@ Fixpoint bfs_queue
       | [] => rev visited
       | vertex :: queue_pop =>
           if b_vl_contains_vertex vertex visited
-          then bfs_queue al visited queue_pop calls'
-          else bfs_queue al ([vertex] ++ visited)
-            (queue_pop ++ (diff_vertex_lists (get_neighbors_list vertex al) visited))
+          then bfs_queue g visited queue_pop calls'
+          else bfs_queue g ([vertex] ++ visited)
+            (queue_pop ++ (diff_vertex_lists (get_adjacency_list vertex g) visited))
             calls'
       end
   end.
 
 Fixpoint bfs
- (al : AdjacencyList)
+ (g : Graph)
  (start : Vertex)
  : VertexList :=
-  if b_vl_contains_vertex start (get_vertex_list al)
-  then bfs_queue al [] [start] ((n_vertices al) + (n_edges al))
+  if b_vl_contains_vertex start (get_vertex_list g)
+  then bfs_queue g [] [start] ((n_vertices g) + (n_edges g))
   else [].
 
 Example bfs_test_1:
@@ -370,14 +370,14 @@ DFS = BFS:
 
 Lemma dfs_stack_vl_with_v :
   forall (v : Vertex) (vl : VertexList),
-  (dfs_stack [nl v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
-  (dfs_stack [nl v vl] [v] (vl ++ []) (length vl + 0)).
+  (dfs_stack [al v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
+  (dfs_stack [al v vl] [v] (vl ++ []) (length vl + 0)).
 Proof. Admitted.
 
 Lemma bfs_queue_vl_with_v :
   forall (v : Vertex) (vl : VertexList),
-  (bfs_queue [nl v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
-  (bfs_queue [nl v vl] [v] (vl ++ []) (length vl + 0)).
+  (bfs_queue [al v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
+  (bfs_queue [al v vl] [v] (vl ++ []) (length vl + 0)).
 Proof. Admitted.
 
 Lemma redundant_prop :
@@ -387,14 +387,14 @@ Proof. Admitted.
 
 (*
 dfs_one_v_same:
-  For a AdjacencyList with only one Vertex 'v1'
+  For a Graph with only one Vertex 'v1'
   (and its connections), the 'dfs' result of this
-  AdjacencyList (starting from 'v1') is a VertexList
+  Graph (starting from 'v1') is a VertexList
   containing 'v1' and its Vertex connections.
 *)
 Lemma dfs_one_v_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
+  v1 = v2 -> In v3 (dfs [(al v1 vl)] v2) = In v3 (v1 :: vl).
 Proof.
   intros.
   rewrite H.
@@ -427,55 +427,55 @@ Admitted.
 
 (*
 dfs_one_v_diff:
-  For a AdjacencyList with only one Vertex 'v1'
+  For a Graph with only one Vertex 'v1'
   (and its connections), the 'dfs' result of this
-  AdjacencyList (starting from a different Vertex
+  Graph (starting from a different Vertex
   'v2') is an empty VertexList.
 *)
 Lemma dfs_one_v_diff :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  ~ v1 = v2 -> In v3 (dfs [(nl v1 vl)] v2) = False.
+  ~ v1 = v2 -> In v3 (dfs [(al v1 vl)] v2) = False.
 Proof. Admitted.
 
 (*
 bfs_one_v_same:
-  For a AdjacencyList with only one Vertex 'v1'
+  For a Graph with only one Vertex 'v1'
   (and its connections), the 'bfs' result of this
-  AdjacencyList (starting from 'v1') is a VertexList
+  Graph (starting from 'v1') is a VertexList
   containing 'v1' and its Vertex connections.
 *)
 Lemma bfs_one_v_same :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = In v3 (v1 :: vl).
+  v1 = v2 -> In v3 (bfs [(al v1 vl)] v2) = In v3 (v1 :: vl).
 Proof. Admitted.
 
 (*
 bfs_one_v_diff:
-  For a AdjacencyList with only one Vertex 'v1'
+  For a Graph with only one Vertex 'v1'
   (and its connections), the 'bfs' result of this
-  AdjacencyList (starting from a different Vertex
+  Graph (starting from a different Vertex
   'v2') is an empty VertexList.
 *)
 Lemma bfs_one_v_diff :
   forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  ~ v1 = v2 -> In v3 (bfs [(nl v1 vl)] v2) = False.
+  ~ v1 = v2 -> In v3 (bfs [(al v1 vl)] v2) = False.
 Proof. Admitted.
 
 (*
-dfs_bfs_equal_in_a_nl:
-  For a AdjacencyList with only one NeighborsList
-  'nl', the 'dfs' result of this AdjacencyList (
+dfs_bfs_one_v_equal:
+  For a Graph with only one AdjacencyList
+  'al', the 'dfs' result of this Graph (
   starting from a Vertex 'v1') is the same as the
-  'bfs' result of ths AdjacencyList (starting
+  'bfs' result of ths Graph (starting
   from a Vertex 'v1').
 *)
 Lemma dfs_bfs_one_v_equal :
-  forall (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (dfs [nl] v1) <-> In v2 (bfs [nl] v1).
+  forall (al : AdjacencyList) (v1 v2 : Vertex),
+  In v2 (dfs [al] v1) <-> In v2 (bfs [al] v1).
 Proof.
   split.
   - intros.
-    destruct nl0.
+    destruct al0.
     case (vertex_eq_dec v0 v1).
     + intros.
       assert (H1 := H0).
@@ -489,7 +489,7 @@ Proof.
       rewrite H0 in H.
       contradiction.
   - intros.
-    destruct nl0.
+    destruct al0.
     case (vertex_eq_dec v0 v1).
     + intros.
       assert (H1 := H0).
@@ -505,55 +505,55 @@ Proof.
 Qed.
 
 Lemma dfs_extend :
-  forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (dfs [nl] v1) \/ In v2 (dfs al v1) <-> In v2 (dfs (nl :: al) v1).
+  forall (g : Graph) (al : AdjacencyList) (v1 v2 : Vertex),
+  In v2 (dfs [al] v1) \/ In v2 (dfs g v1) <-> In v2 (dfs (al :: g) v1).
 Proof. Admitted.
 
 Lemma bfs_extend :
-  forall (al : AdjacencyList) (nl : NeighborsList) (v1 v2 : Vertex),
-  In v2 (bfs [nl] v1) \/ In v2 (bfs al v1) <-> In v2 (bfs (nl :: al) v1).
+  forall (g : Graph) (al : AdjacencyList) (v1 v2 : Vertex),
+  In v2 (bfs [al] v1) \/ In v2 (bfs g v1) <-> In v2 (bfs (al :: g) v1).
 Proof. Admitted.
 
 (*
 dfs_bfs_equal:
-  For every Graph 'al' and Vertex 'v',
-  the DFS of 'al' starting from 'v'
+  For every Graph 'g' and Vertex 'v',
+  the DFS of 'g' starting from 'v'
   returns the same list of Vertices from
-  the BFS of 'al' starting from 'v'.
+  the BFS of 'g' starting from 'v'.
 *)
 Theorem dfs_bfs_equal :
-  forall (al : AdjacencyList) (v1 v2 : Vertex),
-  In v2 (dfs al v1) <-> In v2 (bfs al v1).
+  forall (g : Graph) (v1 v2 : Vertex),
+  In v2 (dfs g v1) <-> In v2 (bfs g v1).
 Proof.
   intros.
   split.
-  - induction al.
+  - induction g.
     + intros.
       simpl in H.
       contradiction.
     + intros.
-      apply (bfs_extend al a v1 v2).
-      apply (dfs_extend al a v1 v2) in H.
+      apply (bfs_extend g a v1 v2).
+      apply (dfs_extend g a v1 v2) in H.
       destruct H.
       * left.
         apply dfs_bfs_one_v_equal in H.
         assumption.
       * right.
-        apply IHal in H.
+        apply IHg in H.
         assumption.
-  - induction al.
+  - induction g.
     + intros.
       simpl in H.
       contradiction.
     + intros.
-      apply (dfs_extend al a v1 v2).
-      apply (bfs_extend al a v1 v2) in H.
+      apply (dfs_extend g a v1 v2).
+      apply (bfs_extend g a v1 v2) in H.
       destruct H.
       * left.
         apply dfs_bfs_one_v_equal in H.
         assumption.
       * right.
-        apply IHal in H.
+        apply IHg in H.
         assumption.
 Qed.
 
