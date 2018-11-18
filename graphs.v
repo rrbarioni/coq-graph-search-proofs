@@ -159,7 +159,7 @@ Notation "a -> [ ]" :=
 (*
   A Graph is a list of AdjacencyList.
 *)
-Definition Graph := list AdjacencyList.
+Notation Graph := (list AdjacencyList).
 
 Compute ([1 -> [2; 3; 4]; 2 -> [1; 3; 5]]).
 
@@ -368,190 +368,85 @@ Proof. simpl. reflexivity. Qed.
 DFS = BFS:
 *)
 
-Lemma dfs_stack_vl_with_v :
-  forall (v : Vertex) (vl : VertexList),
-  (dfs_stack [al v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
-  (dfs_stack [al v vl] [v] (vl ++ []) (length vl + 0)).
-Proof. Admitted.
-
-Lemma bfs_queue_vl_with_v :
-  forall (v : Vertex) (vl : VertexList),
-  (bfs_queue [al v (v :: vl)] [v] (vl ++ []) (length vl + 0)) =
-  (bfs_queue [al v vl] [v] (vl ++ []) (length vl + 0)).
-Proof. Admitted.
-
-Lemma redundant_prop :
-  forall (a b : Prop),
-  (a \/ b) = (a \/ a \/ b).
-Proof. Admitted.
-
 (*
-dfs_one_v_same:
-  For a Graph with only one Vertex 'v1'
-  (and its connections), the 'dfs' result of this
-  Graph (starting from 'v1') is a VertexList
-  containing 'v1' and its Vertex connections.
+vg: start vertex in g
+val : start vertex in al
+vt: target vertex
 *)
-Lemma dfs_one_v_same :
-  forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  v1 = v2 -> In v3 (dfs [(al v1 vl)] v2) = In v3 (v1 :: vl).
+Lemma dfs_transitivity :
+  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
+  In vt (dfs ((al val vl) :: g) val) \/ In vt (dfs g vg) <->
+  In vt (dfs ((al val vl) :: g) vg).
+Proof. Admitted.
+
+Lemma bfs_transitivity :
+  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
+  In vt (bfs ((al val vl) :: g) val) \/ In vt (bfs g vg) <->
+  In vt (bfs ((al val vl) :: g) vg).
+Proof. Admitted.
+
+Lemma unfold_impl :
+  forall (a b : Prop),
+  (a -> b) -> (~ a \/ b).
+Proof. Admitted.
+
+Lemma dfs_bfs_one_v_equal :
+  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
+  (In vt (dfs g vg) -> In vt (bfs g vg)) ->
+  In vt (dfs (al val vl :: g) val) ->
+  In vt (bfs (al val vl :: g) val).
 Proof.
   intros.
-  rewrite H.
-  clear H.
-  simpl.
-  assert (H := vertex_eq_bool v2).
-  rewrite H.
-  induction vl.
-  - simpl. reflexivity.
-  - case (vertex_eq_dec a v2).
-    + intros.
-      rewrite H0.
-      simpl.
-      rewrite H.
-      assert (H1 := (dfs_stack_vl_with_v v2 vl)).
-      rewrite H1.
-      rewrite IHvl.
-      case (vertex_eq_dec v2 v3).
-      * intros.
-        assert (H4 := redundant_prop (v2 = v3) (In v3 vl)).
-        apply H4.
-      * intros.
-        assert (H4 := redundant_prop (v2 = v3) (In v3 vl)).
-        apply H4.
-    + intros.
-      simpl.
-      assert (H1 := vertex_noteq_implies_bool a v2).
-      rewrite H1.
+  apply unfold_impl in H.
+  destruct H.
+  - assert (H1 := dfs_transitivity g vl vg val vt).
+    destruct H1.
+    
+
 Admitted.
 
-(*
-dfs_one_v_diff:
-  For a Graph with only one Vertex 'v1'
-  (and its connections), the 'dfs' result of this
-  Graph (starting from a different Vertex
-  'v2') is an empty VertexList.
-*)
-Lemma dfs_one_v_diff :
-  forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  ~ v1 = v2 -> In v3 (dfs [(al v1 vl)] v2) = False.
+Lemma bfs_dfs_one_v_equal :
+  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
+  (In vt (bfs g vg) -> In vt (dfs g vg)) ->
+  In vt (bfs (al val vl :: g) val) ->
+  In vt (dfs (al val vl :: g) val).
 Proof. Admitted.
 
-(*
-bfs_one_v_same:
-  For a Graph with only one Vertex 'v1'
-  (and its connections), the 'bfs' result of this
-  Graph (starting from 'v1') is a VertexList
-  containing 'v1' and its Vertex connections.
-*)
-Lemma bfs_one_v_same :
-  forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  v1 = v2 -> In v3 (bfs [(al v1 vl)] v2) = In v3 (v1 :: vl).
-Proof. Admitted.
-
-(*
-bfs_one_v_diff:
-  For a Graph with only one Vertex 'v1'
-  (and its connections), the 'bfs' result of this
-  Graph (starting from a different Vertex
-  'v2') is an empty VertexList.
-*)
-Lemma bfs_one_v_diff :
-  forall (v1 v2 v3 : Vertex) (vl : VertexList),
-  ~ v1 = v2 -> In v3 (bfs [(al v1 vl)] v2) = False.
-Proof. Admitted.
-
-(*
-dfs_bfs_one_v_equal:
-  For a Graph with only one AdjacencyList
-  'al', the 'dfs' result of this Graph (
-  starting from a Vertex 'v1') is the same as the
-  'bfs' result of ths Graph (starting
-  from a Vertex 'v1').
-*)
-Lemma dfs_bfs_one_v_equal :
-  forall (al : AdjacencyList) (v1 v2 : Vertex),
-  In v2 (dfs [al] v1) <-> In v2 (bfs [al] v1).
-Proof.
-  split.
-  - intros.
-    destruct al0.
-    case (vertex_eq_dec v0 v1).
-    + intros.
-      assert (H1 := H0).
-      apply (bfs_one_v_same v0 v1 v2 v3) in H0.
-      rewrite H0.
-      apply (dfs_one_v_same v0 v1 v2 v3) in H1.
-      rewrite H1 in H.
-      assumption.
-    + intros.
-      apply (dfs_one_v_diff v0 v1 v2 v3) in H0.
-      rewrite H0 in H.
-      contradiction.
-  - intros.
-    destruct al0.
-    case (vertex_eq_dec v0 v1).
-    + intros.
-      assert (H1 := H0).
-      apply (dfs_one_v_same v0 v1 v2 v3) in H0.
-      rewrite H0.
-      apply (bfs_one_v_same v0 v1 v2 v3) in H1.
-      rewrite H1 in H.
-      assumption.
-    + intros.
-      apply (bfs_one_v_diff v0 v1 v2 v3) in H0.
-      rewrite H0 in H.
-      contradiction.
-Qed.
-
-Lemma dfs_extend :
-  forall (g : Graph) (al : AdjacencyList) (v1 v2 : Vertex),
-  In v2 (dfs [al] v1) \/ In v2 (dfs g v1) <-> In v2 (dfs (al :: g) v1).
-Proof. Admitted.
-
-Lemma bfs_extend :
-  forall (g : Graph) (al : AdjacencyList) (v1 v2 : Vertex),
-  In v2 (bfs [al] v1) \/ In v2 (bfs g v1) <-> In v2 (bfs (al :: g) v1).
-Proof. Admitted.
-
-(*
-dfs_bfs_equal:
-  For every Graph 'g' and Vertex 'v',
-  the DFS of 'g' starting from 'v'
-  returns the same list of Vertices from
-  the BFS of 'g' starting from 'v'.
-*)
 Theorem dfs_bfs_equal :
   forall (g : Graph) (v1 v2 : Vertex),
   In v2 (dfs g v1) <-> In v2 (bfs g v1).
 Proof.
-  intros.
+  intros g vg vt.
   split.
-  - induction g.
+  - induction g as [| al g].
     + intros.
       simpl in H.
       contradiction.
     + intros.
-      apply (bfs_extend g a v1 v2).
-      apply (dfs_extend g a v1 v2) in H.
+      destruct al as [val vl].
+      apply (bfs_transitivity g vl vg val vt).
+      apply (dfs_transitivity g vl vg val vt) in H.
       destruct H.
       * left.
-        apply dfs_bfs_one_v_equal in H.
-        assumption.
+        apply (dfs_bfs_one_v_equal g vl vg val vt).
+        { assumption. }
+        { assumption. }
       * right.
         apply IHg in H.
         assumption.
-  - induction g.
+  - induction g as [| al g].
     + intros.
       simpl in H.
       contradiction.
     + intros.
-      apply (dfs_extend g a v1 v2).
-      apply (bfs_extend g a v1 v2) in H.
+      destruct al as [val vl].
+      apply (dfs_transitivity g vl vg val vt).
+      apply (bfs_transitivity g vl vg val vt) in H.
       destruct H.
       * left.
-        apply dfs_bfs_one_v_equal in H.
-        assumption.
+        apply (bfs_dfs_one_v_equal g vl vg val vt).
+        { assumption. }
+        { assumption. }
       * right.
         apply IHg in H.
         assumption.
