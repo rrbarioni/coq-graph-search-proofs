@@ -7,15 +7,6 @@ Require Export Permutation.
 
 Section SEARCH.
 
-Lemma or_with_true :
-  forall (a b : Prop),
-  a -> (a \/ b).
-Proof.
-  intros.
-  left.
-  assumption.
-Qed.
-
 (*
 Vertex:
   A Vertex contains a natural value,
@@ -59,11 +50,6 @@ Fixpoint beq_vertex
     end
   end.
 
-Lemma vertex_eq :
-  forall (v : Vertex),
-  v = v.
-Proof. Admitted.
-
 (*
 vertex_eq_bool:
   Identity for all Vertex 'v'.
@@ -71,6 +57,11 @@ vertex_eq_bool:
 Lemma vertex_eq_bool :
   forall (v : Vertex),
   beq_vertex v v = true.
+Proof. Admitted.
+
+Lemma vertex_noteq_implies_bool :
+  forall (v1 v2 : Vertex),
+  v1 <> v2 -> beq_vertex v1 v2 = false.
 Proof. Admitted.
 
 (*
@@ -389,6 +380,11 @@ Lemma bfs_queue_vl_with_v :
   (bfs_queue [nl v vl] [v] (vl ++ []) (length vl + 0)).
 Proof. Admitted.
 
+Lemma redundant_prop :
+  forall (a b : Prop),
+  (a \/ b) = (a \/ a \/ b).
+Proof. Admitted.
+
 (*
 dfs_one_v_same:
   For a AdjacencyList with only one Vertex 'v1'
@@ -418,10 +414,15 @@ Proof.
       rewrite IHvl.
       case (vertex_eq_dec v2 v3).
       * intros.
-        rewrite H2.
-        simpl.
-        assert (H3 := vertex_eq v3).
-        
+        assert (H4 := redundant_prop (v2 = v3) (In v3 vl)).
+        apply H4.
+      * intros.
+        assert (H4 := redundant_prop (v2 = v3) (In v3 vl)).
+        apply H4.
+    + intros.
+      simpl.
+      assert (H1 := vertex_noteq_implies_bool a v2).
+      rewrite H1.
 Admitted.
 
 (*
@@ -538,7 +539,8 @@ Proof.
         apply dfs_bfs_one_v_equal in H.
         assumption.
       * right.
-        apply IHal in H. assumption.
+        apply IHal in H.
+        assumption.
   - induction al.
     + intros.
       simpl in H.
