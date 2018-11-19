@@ -677,7 +677,7 @@ Proof.
 Qed.
 
 (*
-dfs_g_contains_val:
+g_not_contains_val:
   For all well formed Graph 'g', if a Vertex
   'vt' is found at the 'dfs' of 'g' plus an
   AdjacencyList with Vertex 'val' and its
@@ -685,21 +685,7 @@ dfs_g_contains_val:
   Vertex 'val'), then Vertex 'val' does not
   belong to the list of Vertices of 'g'.
 *)
-Lemma dfs_g_contains_val :
-  forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  well_formed (al val vl :: g) -> ~ In val (get_vertex_list g).
-Proof. Admitted.
-
-(*
-bfs_g_contains_val:
-  For all well formed Graph 'g', if a Vertex
-  'vt' is found at the bfs of 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'val'), then Vertex 'val' does not
-  belong to the list of Vertices of 'g'.
-*)
-Lemma bfs_g_contains_val :
+Lemma g_not_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
   well_formed (al val vl :: g) -> ~ In val (get_vertex_list g).
 Proof. Admitted.
@@ -735,7 +721,7 @@ Proof.
             destruct H0.
             apply dfs_v_in_g in H0.
             {
-              apply dfs_g_contains_val in wf.
+              apply g_not_contains_val in wf.
               {
                 contradiction.
               }
@@ -774,7 +760,7 @@ Proof.
             destruct H0.
             apply bfs_v_in_g in H0.
             {
-              apply bfs_g_contains_val in wf.
+              apply g_not_contains_val in wf.
               {
                 contradiction.
               }
