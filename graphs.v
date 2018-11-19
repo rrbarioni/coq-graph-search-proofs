@@ -485,7 +485,15 @@ Lemma dfs_v_in_g :
   forall (g : Graph) (v : Vertex),
   well_formed g ->
   (In v (dfs g v) <-> In v (get_vertex_list g)).
-Proof. Admitted.
+Proof.
+  split.
+  - intros.
+    induction g.
+    + simpl in H0.
+      contradiction.
+    + destruct a.
+      destruct get_vertex_list.
+Admitted.
 
 (*
 bfs_v_in_g:
