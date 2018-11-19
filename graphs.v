@@ -449,39 +449,47 @@ vt: target vertex
 *)
 Lemma dfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
-  In vt (dfs ((al val vl) :: g) vg).
+  well_formed g ->
+  (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
+  In vt (dfs ((al val vl) :: g) vg)).
 Proof. Admitted.
 
 Lemma bfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val)  <->
-  In vt (bfs ((al val vl) :: g) vg).
+  well_formed g ->
+  (In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val)  <->
+  In vt (bfs ((al val vl) :: g) vg)).
 Proof. Admitted.
 
 Lemma dfs_v_in_g :
   forall (g : Graph) (v : Vertex),
-  In v (dfs g v) <-> In v (get_vertex_list g).
+  well_formed g ->
+  (In v (dfs g v) <-> In v (get_vertex_list g)).
 Proof. Admitted.
 
 Lemma bfs_v_in_g :
   forall (g : Graph) (v : Vertex),
-  In v (bfs g v) <-> In v (get_vertex_list g).
+  well_formed g ->
+  (In v (bfs g v) <-> In v (get_vertex_list g)).
 Proof. Admitted.
 
 Lemma dfs_bfs_equal_val_val :
   forall (g : Graph) (val : Vertex),
-  In val (dfs g val) <-> In val (bfs g val).
+  well_formed g -> In val (dfs g val) <-> In val (bfs g val).
 Proof.
   split.
   - intros.
-    apply bfs_v_in_g.
-    apply dfs_v_in_g in H.
-    assumption.
+    apply dfs_v_in_g in H0.
+    + apply bfs_v_in_g.
+      * assumption.
+      * apply H0.
+    + assumption.
   - intros.
-    apply dfs_v_in_g.
-    apply bfs_v_in_g in H.
-    assumption.
+    apply bfs_v_in_g in H0.
+    + apply dfs_v_in_g.
+      * assumption.
+      * apply H0.
+    + assumption.
 Qed.
 
 Lemma dfs_g_contains_val :
@@ -509,15 +517,39 @@ Proof.
     + intros.
       destruct al as [val vl].
       apply (bfs_transitivity g vl vg val vt).
-      apply (dfs_transitivity g vl vg val vt) in H.
-      destruct H.
-      apply (dfs_transitivity g vl val val vt) in H0.
-      destruct H0.
-      apply dfs_v_in_g in H0.
-      apply dfs_g_contains_val in H1.
-      * contradiction.
       * apply g_well_formed_add in wf.
         assumption.
+      * apply (dfs_transitivity g vl vg val vt) in H.
+        {
+          destruct H.
+          apply (dfs_transitivity g vl val val vt) in H0.
+          {
+            destruct H0.
+            apply dfs_v_in_g in H0.
+            {
+              apply dfs_g_contains_val in H1.
+              {
+                contradiction.
+              }
+              {
+                apply g_well_formed_add in wf.
+                assumption.
+              }
+            }
+            {
+              apply g_well_formed_add in wf.
+              assumption.
+            }
+          }
+          {
+            apply g_well_formed_add in wf.
+            assumption.
+          }
+        }
+        {
+          apply g_well_formed_add in wf.
+          assumption.
+        }
   - induction g as [| al g].
     + intros.
       simpl in H.
@@ -525,15 +557,39 @@ Proof.
     + intros.
       destruct al as [val vl].
       apply (dfs_transitivity g vl vg val vt).
-      apply (bfs_transitivity g vl vg val vt) in H.
-      destruct H.
-      apply (bfs_transitivity g vl val val vt) in H0.
-      destruct H0.
-      apply bfs_v_in_g in H0.
-      apply bfs_g_contains_val in H1.
-      * contradiction.
       * apply g_well_formed_add in wf.
         assumption.
-Admitted.
+      * apply (bfs_transitivity g vl vg val vt) in H.
+        {
+          destruct H.
+          apply (bfs_transitivity g vl val val vt) in H0.
+          {
+            destruct H0.
+            apply bfs_v_in_g in H0.
+            {
+              apply bfs_g_contains_val in H1.
+              {
+                contradiction.
+              }
+              {
+                apply g_well_formed_add in wf.
+                assumption.
+              }
+            }
+            {
+              apply g_well_formed_add in wf.
+              assumption.
+            }
+          }
+          {
+            apply g_well_formed_add in wf.
+            assumption.
+          }
+        }
+        {
+          apply g_well_formed_add in wf.
+          assumption.
+        }
+Qed.
 
 End SEARCH.
