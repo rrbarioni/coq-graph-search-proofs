@@ -484,16 +484,8 @@ dfs_v_in_g:
 Lemma dfs_v_in_g :
   forall (g : Graph) (v : Vertex),
   well_formed g ->
-  (In v (dfs g v) <-> In v (get_vertex_list g)).
-Proof.
-  split.
-  - intros.
-    induction g.
-    + simpl in H0.
-      contradiction.
-    + destruct a.
-      destruct get_vertex_list.
-Admitted.
+  (In v (dfs g v) -> In v (get_vertex_list g)).
+Proof. Admitted.
 
 (*
 bfs_v_in_g:
@@ -506,7 +498,46 @@ bfs_v_in_g:
 Lemma bfs_v_in_g :
   forall (g : Graph) (v : Vertex),
   well_formed g ->
-  (In v (bfs g v) <-> In v (get_vertex_list g)).
+  (In v (bfs g v) -> In v (get_vertex_list g)).
+Proof. Admitted.
+
+Lemma dfs_add_al_val :
+  forall (g : Graph) (vl : VertexList) (v val : Vertex),
+  well_formed g ->
+  (In val (dfs ((al v vl) :: g) val) ->
+  (v = val) \/ In val (dfs g val)).
+Proof. Admitted.
+
+Lemma bfs_add_al_val :
+  forall (g : Graph) (vl : VertexList) (v val : Vertex),
+  well_formed g ->
+  (In val (bfs ((al v vl) :: g) val) ->
+  (v = val) \/ In val (bfs g val)).
+Proof. Admitted.
+
+Lemma dfs_val_al_val_true :
+  forall (g : Graph) (vl : VertexList) (val : Vertex),
+  well_formed (al val vl :: g) ->
+  In val (dfs (al val vl :: g) val).
+Proof.
+  intros.
+  
+Admitted.
+
+Lemma bfs_val_al_val_true :
+  forall (g : Graph) (vl : VertexList) (val : Vertex),
+  well_formed (al val vl :: g) ->
+  In val (bfs (al val vl :: g) val).
+Proof. Admitted.
+
+Lemma dfs_extend_val_val :
+  forall (g : Graph) (vl : VertexList) (v val : Vertex),
+  In val (dfs g val) -> In val (dfs (al v vl :: g) val).
+Proof. Admitted.
+
+Lemma bfs_extend_val_val :
+  forall (g : Graph) (vl : VertexList) (v val : Vertex),
+  In val (bfs g val) -> In val (bfs (al v vl :: g) val).
 Proof. Admitted.
 
 (*
@@ -522,19 +553,58 @@ Lemma dfs_bfs_equal_val_val :
   well_formed g ->
   (In val (dfs g val) <-> In val (bfs g val)).
 Proof.
+  intros.
   split.
   - intros.
-    apply dfs_v_in_g in H0.
-    + apply bfs_v_in_g.
+    induction g.
+    + simpl in H0.
+      contradiction.
+    + destruct a.
+      assert (H1 := H).
+      apply g_well_formed_add in H.
+      assert (H2 := IHg H).
+      clear IHg.
+      apply dfs_add_al_val in H0.
+      * destruct H0.
+        {
+          rewrite H0.
+          rewrite H0 in H1.
+          clear H0.
+          apply bfs_val_al_val_true.
+          assumption.
+        }
+        {
+          assert (H3 := H2 H0).
+          clear H2.
+          apply bfs_extend_val_val.
+          assumption.
+        }
       * assumption.
-      * apply H0.
-    + assumption.
   - intros.
-    apply bfs_v_in_g in H0.
-    + apply dfs_v_in_g.
+    induction g.
+    + simpl in H0.
+      contradiction.
+    + destruct a.
+      assert (H1 := H).
+      apply g_well_formed_add in H.
+      assert (H2 := IHg H).
+      clear IHg.
+      apply bfs_add_al_val in H0.
+      * destruct H0.
+        {
+          rewrite H0.
+          rewrite H0 in H1.
+          clear H0.
+          apply dfs_val_al_val_true.
+          assumption.
+        }
+        {
+          assert (H3 := H2 H0).
+          clear H2.
+          apply dfs_extend_val_val.
+          assumption.
+        }
       * assumption.
-      * apply H0.
-    + assumption.
 Qed.
 
 (*
@@ -548,8 +618,7 @@ dfs_g_contains_val:
 *)
 Lemma dfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  well_formed g ->
-  (In vt (dfs (al val vl :: g) val) -> ~ In val (get_vertex_list g)).
+  well_formed (al val vl :: g) -> ~ In val (get_vertex_list g).
 Proof. Admitted.
 
 (*
@@ -563,8 +632,7 @@ bfs_g_contains_val:
 *)
 Lemma bfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  well_formed g ->
-  (In vt (bfs (al val vl :: g) val) -> ~ In val (get_vertex_list g)).
+  well_formed (al val vl :: g) -> ~ In val (get_vertex_list g).
 Proof. Admitted.
 
 (*
@@ -598,12 +666,11 @@ Proof.
             destruct H0.
             apply dfs_v_in_g in H0.
             {
-              apply dfs_g_contains_val in H1.
+              apply dfs_g_contains_val in wf.
               {
                 contradiction.
               }
               {
-                apply g_well_formed_add in wf.
                 assumption.
               }
             }
@@ -638,12 +705,11 @@ Proof.
             destruct H0.
             apply bfs_v_in_g in H0.
             {
-              apply bfs_g_contains_val in H1.
+              apply bfs_g_contains_val in wf.
               {
                 contradiction.
               }
               {
-                apply g_well_formed_add in wf.
                 assumption.
               }
             }
