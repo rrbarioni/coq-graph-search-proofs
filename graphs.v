@@ -7,11 +7,6 @@ Require Export Permutation.
 
 Section SEARCH.
 
-Lemma unfold_impl :
-  forall (a b : Prop),
-  (a -> b) -> (~ a \/ b).
-Proof. Admitted.
-
 (*
 Vertex:
   A Vertex contains a natural value,
@@ -56,20 +51,6 @@ Fixpoint beq_vertex
   end.
 
 (*
-vertex_eq_bool:
-  Identity for all Vertex 'v'.
-*)
-Lemma vertex_eq_bool :
-  forall (v : Vertex),
-  beq_vertex v v = true.
-Proof. Admitted.
-
-Lemma vertex_noteq_implies_bool :
-  forall (v1 v2 : Vertex),
-  v1 <> v2 -> beq_vertex v1 v2 = false.
-Proof. Admitted.
-
-(*
 VertexList:
   A VertexList is a list of Vertices.
 *)
@@ -99,6 +80,29 @@ Example b_vl_contains_vertex_test_1:
 Proof. simpl. reflexivity. Qed.
 Example b_vl_contains_vertex_test_2:
   b_vl_contains_vertex (v 4) [v 2; v 3; v 4] = true.
+Proof. simpl. reflexivity. Qed.
+
+(*
+b_vl_contains_repetition:
+  Given a VertexList 'vl', checks if
+  'vl' has a repeated Vertex.
+*)
+Fixpoint b_vl_contains_repetition
+ (vl : VertexList)
+ : bool :=
+  match vl with
+  | [] => false
+  | v' :: vlt =>
+      if b_vl_contains_vertex v' vlt
+      then true
+      else b_vl_contains_repetition vlt
+  end.
+
+Example b_vl_contains_repetition_test_1:
+  b_vl_contains_repetition [v 1; v 3; v 5] = false.
+Proof. simpl. reflexivity. Qed.
+Example b_vl_contains_repetition_test_2:
+  b_vl_contains_repetition [v 1; v 3; v 3] = true.
 Proof. simpl. reflexivity. Qed.
 
 (*
@@ -247,46 +251,25 @@ Example n_edges_test_1:
    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = 6.
 Proof. simpl. reflexivity. Qed.
 
-Fixpoint b_vl_In
-  (v : Vertex)
-  (vl : VertexList)
-  : bool :=
-  match vl with
-  | [] => false
-  | v' :: vlt =>
-      if beq_vertex v v'
-      then true
-      else b_vl_In v vlt
-  end.
-
-Fixpoint b_contains_repetition
- (vl : VertexList)
- : bool :=
-  match vl with
-  | [] => false
-  | v' :: vlt =>
-      if b_vl_In v' vlt
-      then true
-      else b_contains_repetition vlt
-  end.
-
-Example b_contains_repetition_test_1:
-  b_contains_repetition [v 1; v 3; v 5] = false.
-Proof. simpl. reflexivity. Qed.
-Example b_contains_repetition_test_2:
-  b_contains_repetition [v 1; v 3; v 3] = true.
-Proof. simpl. reflexivity. Qed.
-
+(*
+b_well_formed:
+  Given a Graph 'g', checks if:
+  - 'g' does not contain repeated
+    Vertices in its Vertex list;
+  - each AdjacencyList of 'g' does
+    not contain repeated Vertices
+    in its Vertex list.
+*)
 Fixpoint b_well_formed
  (g : Graph)
  : bool :=
-  if b_contains_repetition (get_vertex_list g)
+  if b_vl_contains_repetition (get_vertex_list g)
   then false
   else
     match g with
     | [] => true
     | (al v' vl) :: gt =>
-        if b_contains_repetition vl
+        if b_vl_contains_repetition vl
         then false
         else b_well_formed gt
   end.
@@ -447,6 +430,21 @@ vg: start vertex in g
 val : start vertex in al
 vt: target vertex
 *)
+
+(*
+dfs_transitivity:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g' (starting
+  from a Vertex 'vg') and a Vertex 'vt' is
+  found at the 'dfs' of 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'vl'), then Vertex 'vt' is found at
+  the 'dfs' of 'g' plus an AdjacencyList with
+  Vertex 'val' and its adjacenct vertices in
+  'vl' (starting from Vertex 'vg'), and vice
+  versa.
+*)
 Lemma dfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
   well_formed g ->
@@ -454,6 +452,20 @@ Lemma dfs_transitivity :
   In vt (dfs ((al val vl) :: g) vg)).
 Proof. Admitted.
 
+(*
+bfs_transitivity:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g' (starting
+  from a Vertex 'vg') and a Vertex 'vt' is
+  found at the 'dfs' of 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'vl'), then Vertex 'vt' is found at
+  the 'dfs' of 'g' plus an AdjacencyList with
+  Vertex 'val' and its adjacenct vertices in
+  'vl' (starting from Vertex 'vg'), and vice
+  versa.
+*)
 Lemma bfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
   well_formed g ->
@@ -461,21 +473,46 @@ Lemma bfs_transitivity :
   In vt (bfs ((al val vl) :: g) vg)).
 Proof. Admitted.
 
+(*
+dfs_v_in_g:
+  For all well formed Graph 'g', if a Vertex
+  'v' is found at the 'dfs' of 'g' (starting
+  from the same Vertex 'v'), then 'v' belongs
+  to the list of Vertices of 'g', and vice
+  versa.
+*)
 Lemma dfs_v_in_g :
   forall (g : Graph) (v : Vertex),
   well_formed g ->
   (In v (dfs g v) <-> In v (get_vertex_list g)).
 Proof. Admitted.
 
+(*
+bfs_v_in_g:
+  For all well formed Graph 'g', if a Vertex
+  'v' is found at the 'bfs' of 'g' (starting
+  from the same Vertex 'v'), then 'v' belongs
+  to the list of Vertices of 'g', and vice
+  versa.
+*)
 Lemma bfs_v_in_g :
   forall (g : Graph) (v : Vertex),
   well_formed g ->
   (In v (bfs g v) <-> In v (get_vertex_list g)).
 Proof. Admitted.
 
+(*
+dfs_bfs_equal_val_val:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g' (starting
+  from the same Vertex 'val'), then 'val' is
+  also found at the bfs of 'g' (also starting
+  from Vertex 'val'), and vice versa.
+*)
 Lemma dfs_bfs_equal_val_val :
   forall (g : Graph) (val : Vertex),
-  well_formed g -> In val (dfs g val) <-> In val (bfs g val).
+  well_formed g ->
+  (In val (dfs g val) <-> In val (bfs g val)).
 Proof.
   split.
   - intros.
@@ -492,18 +529,44 @@ Proof.
     + assumption.
 Qed.
 
+(*
+dfs_g_contains_val:
+  For all well formed Graph 'g', if a Vertex
+  'vt' is found at the 'dfs' of 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'val'), then Vertex 'val' does not
+  belong to the list of Vertices of 'g'.
+*)
 Lemma dfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  well_formed g -> In vt (dfs (al val vl :: g) val) ->
-  ~ In val (get_vertex_list g).
+  well_formed g ->
+  (In vt (dfs (al val vl :: g) val) -> ~ In val (get_vertex_list g)).
 Proof. Admitted.
 
+(*
+bfs_g_contains_val:
+  For all well formed Graph 'g', if a Vertex
+  'vt' is found at the bfs of 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'val'), then Vertex 'val' does not
+  belong to the list of Vertices of 'g'.
+*)
 Lemma bfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  well_formed g -> In vt (bfs (al val vl :: g) val) ->
-  ~ In val (get_vertex_list g).
+  well_formed g ->
+  (In vt (bfs (al val vl :: g) val) -> ~ In val (get_vertex_list g)).
 Proof. Admitted.
 
+(*
+dfs_bfs_equal:
+  For all well formed Graph 'g', if a Vertex
+  'vt' is found at the 'dfs' of 'g' (starting
+  from Vertex 'vg'), then 'vt' is also found
+  at the bfs of 'g' (also starting from Vertex
+  'vg'), and vice versa.
+*)
 Theorem dfs_bfs_equal :
   forall (g : Graph) (vg vt : Vertex),
   well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
