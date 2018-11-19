@@ -7,6 +7,11 @@ Require Export Permutation.
 
 Section SEARCH.
 
+Lemma unfold_impl :
+  forall (a b : Prop),
+  (a -> b) -> (~ a \/ b).
+Proof. Admitted.
+
 (*
 Vertex:
   A Vertex contains a natural value,
@@ -385,16 +390,42 @@ Lemma bfs_transitivity :
   In vt (bfs ((al val vl) :: g) vg).
 Proof. Admitted.
 
-Lemma unfold_impl :
-  forall (a b : Prop),
-  (a -> b) -> (~ a \/ b).
+Lemma dfs_v_in_g :
+  forall (g : Graph) (v : Vertex),
+  In v (dfs g v) <-> In v (get_vertex_list g).
+Proof. Admitted.
+
+Lemma bfs_v_in_g :
+  forall (g : Graph) (v : Vertex),
+  In v (bfs g v) <-> In v (get_vertex_list g).
+Proof. Admitted.
+
+Lemma dfs_bfs_equal_val_val :
+  forall (g : Graph) (val : Vertex),
+  In val (dfs g val) <-> In val (bfs g val).
+Proof.
+  split.
+  - intros.
+    apply bfs_v_in_g.
+    apply dfs_v_in_g in H.
+    assumption.
+  - intros.
+    apply dfs_v_in_g.
+    apply bfs_v_in_g in H.
+    assumption.
+Qed.
+
+Lemma dfs_bfs_equal_val_vt :
+  forall (g : Graph) (vl : VertexList) (val vt : Vertex),
+  In vt (dfs (al val vl :: g) val)
+  <-> In vt (bfs (al val vl :: g) val).
 Proof. Admitted.
 
 Theorem dfs_bfs_equal :
-  forall (g : Graph) (v1 v2 : Vertex),
-  In v2 (dfs g v1) <-> In v2 (bfs g v1).
+  forall (g : Graph) (vg vt : Vertex),
+  In vt (dfs g vg) <-> In vt (bfs g vg).
 Proof.
-  intros g vg vt.
+  intros.
   split.
   - induction g as [| al g].
     + intros.
@@ -405,7 +436,17 @@ Proof.
       apply (bfs_transitivity g vl vg val vt).
       apply (dfs_transitivity g vl vg val vt) in H.
       destruct H.
+      apply (dfs_transitivity g vl val val vt) in H0.
+      destruct H0.
+      assert (H2 := H0).
+      apply (dfs_bfs_equal_val_val g val) in H2.
+      assert (H3 := H1).
+      apply (dfs_bfs_equal_val_vt g vl val vt) in H3.
+      clear H0 H1.
+      apply unfold_impl in IHg.
       split.
-      Admitted.
+      * destruct IHg.
+        
+Admitted.
 
 End SEARCH.
