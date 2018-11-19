@@ -415,10 +415,16 @@ Proof.
     assumption.
 Qed.
 
-Lemma dfs_bfs_equal_val_vt :
+Lemma dfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  In vt (dfs (al val vl :: g) val)
-  <-> In vt (bfs (al val vl :: g) val).
+  In vt (dfs (al val vl :: g) val) ->
+  ~ In val (get_vertex_list g).
+Proof. Admitted.
+
+Lemma bfs_g_contains_val :
+  forall (g : Graph) (vl : VertexList) (val vt : Vertex),
+  In vt (bfs (al val vl :: g) val) ->
+  ~ In val (get_vertex_list g).
 Proof. Admitted.
 
 Theorem dfs_bfs_equal :
@@ -438,15 +444,23 @@ Proof.
       destruct H.
       apply (dfs_transitivity g vl val val vt) in H0.
       destruct H0.
-      assert (H2 := H0).
-      apply (dfs_bfs_equal_val_val g val) in H2.
-      assert (H3 := H1).
-      apply (dfs_bfs_equal_val_vt g vl val vt) in H3.
-      clear H0 H1.
-      apply unfold_impl in IHg.
-      split.
-      * destruct IHg.
-        
+      apply dfs_v_in_g in H0.
+      apply dfs_g_contains_val in H1.
+      contradiction.
+  - induction g as [| al g].
+    + intros.
+      simpl in H.
+      contradiction.
+    + intros.
+      destruct al as [val vl].
+      apply (dfs_transitivity g vl vg val vt).
+      apply (bfs_transitivity g vl vg val vt) in H.
+      destruct H.
+      apply (bfs_transitivity g vl val val vt) in H0.
+      destruct H0.
+      apply bfs_v_in_g in H0.
+      apply bfs_g_contains_val in H1.
+      contradiction.
 Admitted.
 
 End SEARCH.
