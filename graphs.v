@@ -510,14 +510,14 @@ Proof. Admitted.
 Lemma dfs_add_al_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
-  (In val (dfs ((al v vl) :: g) val) ->
+  (In val (dfs ((al v vl) :: g) val) <->
   (v = val) \/ In val (dfs g val)).
 Proof. Admitted.
 
 Lemma bfs_add_al_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
-  (In val (bfs ((al v vl) :: g) val) ->
+  (In val (bfs ((al v vl) :: g) val) <->
   (v = val) \/ In val (bfs g val)).
 Proof. Admitted.
 
@@ -577,13 +577,27 @@ Qed.
 
 Lemma dfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
-  In val (dfs g val) -> In val (dfs (al v vl :: g) val).
-Proof. Admitted.
+  well_formed g ->
+  (In val (dfs g val) -> In val (dfs (al v vl :: g) val)).
+Proof.
+  intros.
+  apply (dfs_add_al_val g vl v0 val).
+  - assumption.
+  - right.
+    assumption.
+Qed.
 
 Lemma bfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
-  In val (bfs g val) -> In val (bfs (al v vl :: g) val).
-Proof. Admitted.
+  well_formed g ->
+  (In val (bfs g val) -> In val (bfs (al v vl :: g) val)).
+Proof.
+  intros.
+  apply (bfs_add_al_val g vl v0 val).
+  - assumption.
+  - right.
+    assumption.
+Qed.
 
 (*
 dfs_bfs_equal_val_val:
@@ -622,7 +636,12 @@ Proof.
           assert (H3 := H2 H0).
           clear H2.
           apply bfs_extend_val_val.
-          assumption.
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
         }
       * assumption.
   - intros.
@@ -647,7 +666,12 @@ Proof.
           assert (H3 := H2 H0).
           clear H2.
           apply dfs_extend_val_val.
-          assumption.
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
         }
       * assumption.
 Qed.
