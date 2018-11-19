@@ -247,6 +247,75 @@ Example n_edges_test_1:
    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = 6.
 Proof. simpl. reflexivity. Qed.
 
+Fixpoint b_vl_In
+  (v : Vertex)
+  (vl : VertexList)
+  : bool :=
+  match vl with
+  | [] => false
+  | v' :: vlt =>
+      if beq_vertex v v'
+      then true
+      else b_vl_In v vlt
+  end.
+
+Fixpoint b_contains_repetition
+ (vl : VertexList)
+ : bool :=
+  match vl with
+  | [] => false
+  | v' :: vlt =>
+      if b_vl_In v' vlt
+      then true
+      else b_contains_repetition vlt
+  end.
+
+Example b_contains_repetition_test_1:
+  b_contains_repetition [v 1; v 3; v 5] = false.
+Proof. simpl. reflexivity. Qed.
+Example b_contains_repetition_test_2:
+  b_contains_repetition [v 1; v 3; v 3] = true.
+Proof. simpl. reflexivity. Qed.
+
+Fixpoint b_well_formed
+ (g : Graph)
+ : bool :=
+  if b_contains_repetition (get_vertex_list g)
+  then false
+  else
+    match g with
+    | [] => true
+    | (al v' vl) :: gt =>
+        if b_contains_repetition vl
+        then false
+        else b_well_formed gt
+  end.
+
+Example b_well_formed_test_1:
+  b_well_formed
+    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = true.
+Proof. simpl. reflexivity. Qed.
+Example b_well_formed_test_2:
+  b_well_formed
+    [1 -> [2; 3; 4]; 1 -> [1; 3; 5]] = false.
+Proof. simpl. reflexivity. Qed.
+Example b_well_formed_test_3:
+  b_well_formed
+    [1 -> [2; 3; 4]; 2 -> [1; 3; 3]] = false.
+Proof. simpl. reflexivity. Qed.
+
+Fixpoint well_formed
+ (g : Graph)
+ : Prop :=
+  if b_well_formed g
+  then True
+  else False.
+
+Lemma g_well_formed_add :
+  forall (g : Graph) (vl : VertexList) (v : Vertex),
+  well_formed ((al v vl) :: g) -> well_formed g.
+Proof. Admitted.
+
 (*
 DFS:
 *)
@@ -417,21 +486,21 @@ Qed.
 
 Lemma dfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  In vt (dfs (al val vl :: g) val) ->
+  well_formed g -> In vt (dfs (al val vl :: g) val) ->
   ~ In val (get_vertex_list g).
 Proof. Admitted.
 
 Lemma bfs_g_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  In vt (bfs (al val vl :: g) val) ->
+  well_formed g -> In vt (bfs (al val vl :: g) val) ->
   ~ In val (get_vertex_list g).
 Proof. Admitted.
 
 Theorem dfs_bfs_equal :
   forall (g : Graph) (vg vt : Vertex),
-  In vt (dfs g vg) <-> In vt (bfs g vg).
+  well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
 Proof.
-  intros.
+  intros g vg vt wf.
   split.
   - induction g as [| al g].
     + intros.
@@ -446,7 +515,9 @@ Proof.
       destruct H0.
       apply dfs_v_in_g in H0.
       apply dfs_g_contains_val in H1.
-      contradiction.
+      * contradiction.
+      * apply g_well_formed_add in wf.
+        assumption.
   - induction g as [| al g].
     + intros.
       simpl in H.
@@ -460,7 +531,9 @@ Proof.
       destruct H0.
       apply bfs_v_in_g in H0.
       apply bfs_g_contains_val in H1.
-      contradiction.
+      * contradiction.
+      * apply g_well_formed_add in wf.
+        assumption.
 Admitted.
 
 End SEARCH.
