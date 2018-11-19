@@ -50,6 +50,12 @@ Fixpoint beq_vertex
     end
   end.
 
+
+Lemma b_vertex_eq :
+  forall (v : Vertex),
+  beq_vertex v v = true.
+Proof. Admitted.
+
 (*
 VertexList:
   A VertexList is a list of Vertices.
@@ -515,20 +521,59 @@ Lemma bfs_add_al_val :
   (v = val) \/ In val (bfs g val)).
 Proof. Admitted.
 
+Lemma dfs_stack_val :
+  forall (g : Graph) (visited stack : VertexList) (calls : nat) (val : Vertex),
+  In val visited -> In val (dfs_stack g visited stack calls).
+Proof. Admitted.
+
+Lemma bfs_queue_val :
+  forall (g : Graph) (visited queue : VertexList) (calls : nat) (val : Vertex),
+  In val visited -> In val (bfs_queue g visited queue calls).
+Proof. Admitted.
+
 Lemma dfs_val_al_val_true :
   forall (g : Graph) (vl : VertexList) (val : Vertex),
   well_formed (al val vl :: g) ->
   In val (dfs (al val vl :: g) val).
 Proof.
   intros.
-  
-Admitted.
+  unfold dfs.
+  simpl.
+  rewrite (b_vertex_eq val).
+  apply (
+    dfs_stack_val
+      (al val vl :: g)
+      [val]
+      (vl ++ [])
+      (length g + (length vl + n_edges g))
+      val
+  ).
+  simpl.
+  left.
+  reflexivity.
+Qed.
 
 Lemma bfs_val_al_val_true :
   forall (g : Graph) (vl : VertexList) (val : Vertex),
   well_formed (al val vl :: g) ->
   In val (bfs (al val vl :: g) val).
-Proof. Admitted.
+Proof.
+  intros.
+  unfold bfs.
+  simpl.
+  rewrite (b_vertex_eq val).
+  apply (
+    bfs_queue_val
+      (al val vl :: g)
+      [val]
+      vl
+      (length g + (length vl + n_edges g))
+      val
+  ).
+  simpl.
+  left.
+  reflexivity.
+Qed.
 
 Lemma dfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
