@@ -50,7 +50,11 @@ Fixpoint beq_vertex
     end
   end.
 
-
+(*
+b_vertex_eq:
+  For all Vertex 'v', it is always
+  equal to itself.
+*)
 Lemma b_vertex_eq :
   forall (v : Vertex),
   beq_vertex v v = true.
@@ -293,6 +297,11 @@ Example b_well_formed_test_3:
     [1 -> [2; 3; 4]; 2 -> [1; 3; 3]] = false.
 Proof. simpl. reflexivity. Qed.
 
+(*
+well_formed:
+  Same as b_well_formed, but returns
+  a Prop.
+*)
 Fixpoint well_formed
  (g : Graph)
  : Prop :=
@@ -300,6 +309,14 @@ Fixpoint well_formed
   then True
   else False.
 
+(*
+g_well_formed_add:
+  For all Graph 'g', if 'g' plus an
+  AdjacencyList with Vertex 'v' and
+  its adjacenct vertices in 'vl' is
+  a well formed Graph, then 'g' is
+  also a well formed Graph.
+*)
 Lemma g_well_formed_add :
   forall (g : Graph) (vl : VertexList) (v : Vertex),
   well_formed ((al v vl) :: g) -> well_formed g.
@@ -507,6 +524,16 @@ Lemma bfs_v_in_g :
   (In v (bfs g v) -> In v (get_vertex_list g)).
 Proof. Admitted.
 
+(*
+dfs_add_al_val:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g' plus an
+  AdjacencyList with Vertex 'v' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'val'), then 'v' is equal to 'val'
+  or 'val' is found at the 'dfs' of 'g'
+  (also starting from Vertex 'val').
+*)
 Lemma dfs_add_al_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
@@ -514,6 +541,16 @@ Lemma dfs_add_al_val :
   (v = val) \/ In val (dfs g val)).
 Proof. Admitted.
 
+(*
+bfs_add_al_val:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'bfs' of 'g' plus an
+  AdjacencyList with Vertex 'v' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'val'), then 'v' is equal to 'val'
+  or 'val' is found at the 'bfs' of 'g'
+  (also starting from Vertex 'val').
+*)
 Lemma bfs_add_al_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
@@ -521,16 +558,43 @@ Lemma bfs_add_al_val :
   (v = val) \/ In val (bfs g val)).
 Proof. Admitted.
 
+(*
+dfs_stack_val:
+  For all Vertex 'val', if it already
+  exists inside VertexList 'visited', then
+  'val' will continue existing inside
+  'visited' while 'dfs_stack' is computed',
+  once there are only insertions in
+  'visited' inside 'dfs_stack' computation.
+*)
 Lemma dfs_stack_val :
   forall (g : Graph) (visited stack : VertexList) (calls : nat) (val : Vertex),
   In val visited -> In val (dfs_stack g visited stack calls).
 Proof. Admitted.
 
+(*
+bfs_queue_val:
+  For all Vertex 'val', if it already
+  exists inside VertexList 'visited', then
+  'val' will continue existing inside
+  'visited' while 'bfs_queue' is computed',
+  once there are only insertions in
+  'visited' inside 'bfs_queue' computation.
+*)
 Lemma bfs_queue_val :
   forall (g : Graph) (visited queue : VertexList) (calls : nat) (val : Vertex),
   In val visited -> In val (bfs_queue g visited queue calls).
 Proof. Admitted.
 
+(*
+dfs_val_al_val_true:
+  Forall well formed Graph 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl', 'val' is
+  always found at the 'dfs' of 'g' with
+  this AdjacencyList (once the 'dfs' would
+  start from 'val' shortly).
+*)
 Lemma dfs_val_al_val_true :
   forall (g : Graph) (vl : VertexList) (val : Vertex),
   well_formed (al val vl :: g) ->
@@ -553,6 +617,15 @@ Proof.
   reflexivity.
 Qed.
 
+(*
+bfs_val_al_val_true:
+  Forall well formed Graph 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl', 'val' is
+  always found at the 'bfs' of 'g' with
+  this AdjacencyList (once the 'bfs' would
+  start from 'val' shortly).
+*)
 Lemma bfs_val_al_val_true :
   forall (g : Graph) (vl : VertexList) (val : Vertex),
   well_formed (al val vl :: g) ->
@@ -575,6 +648,14 @@ Proof.
   reflexivity.
 Qed.
 
+(*
+dfs_extend_val_val:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g'
+  (starting from 'val'), then 'val' is still
+  found by the 'dfs' when we add a
+  AdjacencyList into 'g'.
+*)
 Lemma dfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
@@ -586,7 +667,14 @@ Proof.
   - right.
     assumption.
 Qed.
-
+(*
+bfs_extend_val_val:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'bfs' of 'g'
+  (starting from the same Vertex 'val'),
+  then 'val' is still found by the 'bfs'
+  when we add a AdjacencyList into 'g'.
+*)
 Lemma bfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
@@ -678,12 +766,11 @@ Qed.
 
 (*
 g_not_contains_val:
-  For all well formed Graph 'g', if a Vertex
-  'vt' is found at the 'dfs' of 'g' plus an
+  For all well formed Graph 'g' plus an
   AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'val'), then Vertex 'val' does not
-  belong to the list of Vertices of 'g'.
+  adjacenct vertices in 'vl', Vertex
+  'val' does not belong to the list of
+  Vertices of 'g'.
 *)
 Lemma g_not_contains_val :
   forall (g : Graph) (vl : VertexList) (val vt : Vertex),
