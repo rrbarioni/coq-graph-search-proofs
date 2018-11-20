@@ -497,34 +497,6 @@ Lemma bfs_transitivity :
 Proof. Admitted.
 
 (*
-dfs_v_in_g:
-  For all well formed Graph 'g', if a Vertex
-  'v' is found at the 'dfs' of 'g' (starting
-  from the same Vertex 'v'), then 'v' belongs
-  to the list of Vertices of 'g', and vice
-  versa.
-*)
-Lemma dfs_v_in_g :
-  forall (g : Graph) (v : Vertex),
-  well_formed g ->
-  (In v (dfs g v) -> In v (get_vertex_list g)).
-Proof. Admitted.
-
-(*
-bfs_v_in_g:
-  For all well formed Graph 'g', if a Vertex
-  'v' is found at the 'bfs' of 'g' (starting
-  from the same Vertex 'v'), then 'v' belongs
-  to the list of Vertices of 'g', and vice
-  versa.
-*)
-Lemma bfs_v_in_g :
-  forall (g : Graph) (v : Vertex),
-  well_formed g ->
-  (In v (bfs g v) -> In v (get_vertex_list g)).
-Proof. Admitted.
-
-(*
 dfs_add_al_val:
   For all well formed Graph 'g', if a Vertex
   'val' is found at the 'dfs' of 'g' plus an
@@ -763,6 +735,53 @@ Proof.
         }
       * assumption.
 Qed.
+
+(*
+dfs_v_in_g:
+  For all well formed Graph 'g', if a Vertex
+  'v' is found at the 'dfs' of 'g' (starting
+  from the same Vertex 'v'), then 'v' belongs
+  to the list of Vertices of 'g', and vice
+  versa.
+*)
+Lemma dfs_v_in_g :
+  forall (g : Graph) (v : Vertex),
+  well_formed g ->
+  (In v (dfs g v) -> In v (get_vertex_list g)).
+Proof. Admitted.
+
+(*
+bfs_v_in_g:
+  For all well formed Graph 'g', if a Vertex
+  'v' is found at the 'bfs' of 'g' (starting
+  from the same Vertex 'v'), then 'v' belongs
+  to the list of Vertices of 'g', and vice
+  versa.
+*)
+Lemma bfs_v_in_g :
+  forall (g : Graph) (v : Vertex),
+  well_formed g ->
+  (In v (bfs g v) -> In v (get_vertex_list g)).
+Proof.
+  intros.
+  induction g.
+  - simpl in H0.
+    contradiction.
+  - destruct a.
+    assert (H1 := H).
+    apply g_well_formed_add in H1.
+    assert (IHg := IHg H1).
+    case (vertex_eq_dec v1 v0).
+    + intros.
+      rewrite H2.
+      simpl.
+      left.
+      reflexivity.
+    + intros.
+      simpl.
+      right.
+      simpl in H0.
+Admitted.
 
 (*
 g_not_contains_val:
