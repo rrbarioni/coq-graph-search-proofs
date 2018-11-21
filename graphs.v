@@ -475,13 +475,12 @@ dfs_add_al_val:
   or 'val' is found at the 'dfs' of 'g'
   (also starting from Vertex 'val').
 *)
-Lemma dfs_add_al_val :
+(* Lemma dfs_add_al_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
   (In val (dfs ((al v vl) :: g) val) <->
   (v = val) \/ In val (dfs g val)).
-Proof. Admitted.
-
+Proof. Admitted. *)
 (*
 bfs_add_al_val:
   For all well formed Graph 'g', if a Vertex
@@ -492,12 +491,12 @@ bfs_add_al_val:
   or 'val' is found at the 'bfs' of 'g'
   (also starting from Vertex 'val').
 *)
-Lemma bfs_add_al_val :
+(* Lemma bfs_add_al_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
   (In val (bfs ((al v vl) :: g) val) <->
   (v = val) \/ In val (bfs g val)).
-Proof. Admitted.
+Proof. Admitted. *)
 
 (*
 dfs_stack_val:
@@ -508,10 +507,10 @@ dfs_stack_val:
   once there are only insertions in
   'visited' inside 'dfs_stack' computation.
 *)
-Lemma dfs_stack_val :
+(* Lemma dfs_stack_val :
   forall (g : Graph) (visited stack : VertexList) (calls : nat) (val : Vertex),
   In val visited -> In val (dfs_stack g visited stack calls).
-Proof. Admitted.
+Proof. Admitted. *)
 
 (*
 bfs_queue_val:
@@ -522,10 +521,10 @@ bfs_queue_val:
   once there are only insertions in
   'visited' inside 'bfs_queue' computation.
 *)
-Lemma bfs_queue_val :
+(* Lemma bfs_queue_val :
   forall (g : Graph) (visited queue : VertexList) (calls : nat) (val : Vertex),
   In val visited -> In val (bfs_queue g visited queue calls).
-Proof. Admitted.
+Proof. Admitted. *)
 
 (*
 dfs_val_al_val_true:
@@ -536,7 +535,7 @@ dfs_val_al_val_true:
   this AdjacencyList (once the 'dfs' would
   start from 'val' shortly).
 *)
-Lemma dfs_val_al_val_true :
+(* Lemma dfs_val_al_val_true :
   forall (g : Graph) (vl : VertexList) (val : Vertex),
   well_formed (al val vl :: g) ->
   In val (dfs (al val vl :: g) val).
@@ -556,7 +555,7 @@ Proof.
   simpl.
   left.
   reflexivity.
-Qed.
+Qed. *)
 
 (*
 bfs_val_al_val_true:
@@ -567,7 +566,7 @@ bfs_val_al_val_true:
   this AdjacencyList (once the 'bfs' would
   start from 'val' shortly).
 *)
-Lemma bfs_val_al_val_true :
+(* Lemma bfs_val_al_val_true :
   forall (g : Graph) (vl : VertexList) (val : Vertex),
   well_formed (al val vl :: g) ->
   In val (bfs (al val vl :: g) val).
@@ -587,7 +586,7 @@ Proof.
   simpl.
   left.
   reflexivity.
-Qed.
+Qed. *)
 
 (*
 dfs_extend_val_val:
@@ -597,7 +596,7 @@ dfs_extend_val_val:
   found by the 'dfs' when we add a
   AdjacencyList into 'g'.
 *)
-Lemma dfs_extend_val_val :
+(* Lemma dfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
   (In val (dfs g val) -> In val (dfs (al v vl :: g) val)).
@@ -607,7 +606,8 @@ Proof.
   - assumption.
   - right.
     assumption.
-Qed.
+Qed. *)
+
 (*
 bfs_extend_val_val:
   For all well formed Graph 'g', if a Vertex
@@ -616,7 +616,7 @@ bfs_extend_val_val:
   then 'val' is still found by the 'bfs'
   when we add a AdjacencyList into 'g'.
 *)
-Lemma bfs_extend_val_val :
+(* Lemma bfs_extend_val_val :
   forall (g : Graph) (vl : VertexList) (v val : Vertex),
   well_formed g ->
   (In val (bfs g val) -> In val (bfs (al v vl :: g) val)).
@@ -626,7 +626,7 @@ Proof.
   - assumption.
   - right.
     assumption.
-Qed.
+Qed. *)
 
 (*
 dfs_bfs_equal_val_val:
@@ -636,7 +636,7 @@ dfs_bfs_equal_val_val:
   also found at the bfs of 'g' (also starting
   from Vertex 'val'), and vice versa.
 *)
-Lemma dfs_bfs_equal_val_val :
+(* Lemma dfs_bfs_equal_val_val :
   forall (g : Graph) (val : Vertex),
   well_formed g ->
   (In val (dfs g val) <-> In val (bfs g val)).
@@ -703,7 +703,7 @@ Proof.
           }
         }
       * assumption.
-Qed.
+Qed. *)
 
 Lemma dfs_stack_not_started_from_al :
   forall (g : Graph) (stack : VertexList) (calls : nat) (vl : VertexList) (v0 v1 : Vertex),
@@ -717,6 +717,28 @@ Lemma bfs_queue_not_started_from_al :
   v1 <> v0 ->
   In v0 (bfs_queue (al v1 vl :: g) [v0] queue calls) ->
   In v0 (bfs g v0).
+Proof. Admitted.
+
+Lemma dfs_extend_already_found_al :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  In v2 (dfs g v1) -> In v2 (dfs (al v2 vl :: g) v1).
+Proof. Admitted.
+
+Lemma bfs_extend_already_found_al :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  In v2 (bfs g v1) -> In v2 (bfs (al v2 vl :: g) v1).
+Proof. Admitted.
+
+Lemma dfs_stack_ignore_calls :
+  forall (g : Graph) (visited stack : VertexList) (v : Vertex) (calls : nat),
+  In v (dfs_stack g visited stack (S calls)) ->
+  In v (dfs_stack g visited stack calls).
+Proof. Admitted.
+
+Lemma bfs_queue_ignore_calls :
+  forall (g : Graph) (visited queue : VertexList) (v : Vertex) (calls : nat),
+  In v (bfs_queue g visited queue (S calls)) ->
+  In v (bfs_queue g visited queue calls).
 Proof. Admitted.
 
 (*
@@ -864,7 +886,32 @@ Lemma dfs_transitivity :
   well_formed g ->
   (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
   In vt (dfs ((al val vl) :: g) vg)).
-Proof. Admitted.
+Proof.
+  split.
+  - intros.
+    destruct H0.
+    unfold dfs in H1.
+    simpl in H1.
+    rewrite (b_vertex_eq val) in H1.
+    induction (length g + (length vl + n_edges g)) in H1.
+    + simpl in H1.
+      destruct H1.
+      {
+        rewrite H1.
+        rewrite H1 in H0.
+        clear H1.
+        apply dfs_extend_already_found_al.
+        assumption.
+      }
+      {
+        contradiction.
+      }
+    + apply dfs_stack_ignore_calls in H1.
+      assert (H2 := IHn H1).
+      assumption.
+  - intros.
+    
+Admitted.
 
 (*
 bfs_transitivity:
