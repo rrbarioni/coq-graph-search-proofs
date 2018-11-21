@@ -910,7 +910,23 @@ Proof.
       assert (H2 := IHn H1).
       assumption.
   - intros.
-    
+    simpl in H0.
+    case (vertex_eq_dec vg val).
+    + intros.
+      rewrite H1.
+      rewrite H1 in H0.
+      clear H1.
+      rewrite (b_vertex_eq val) in H0.
+      induction (length g + (length vl + n_edges g)) in H0.
+      {
+        simpl in H0.
+        destruct H0.
+        {
+          rewrite H0.
+          clear H0.
+          
+        }
+      }
 Admitted.
 
 (*
