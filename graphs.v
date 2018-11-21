@@ -4,6 +4,7 @@ Require Export Coq.omega.Omega.
 Require Export Coq.Lists.List.
 Export ListNotations.
 Require Export Permutation.
+Require Export Coq.Classes.RelationClasses.
 
 Section SEARCH.
 
@@ -58,6 +59,16 @@ b_vertex_eq:
 Lemma b_vertex_eq :
   forall (v : Vertex),
   beq_vertex v v = true.
+Proof. Admitted.
+
+Lemma vertex_noteq :
+  forall (v1 v2 : Vertex),
+  v1 <> v2 -> beq_vertex v1 v2 = false.
+Proof. Admitted.
+
+Lemma vertex_noteq_symmetry :
+  forall (v1 v2 : Vertex),
+  v1 <> v2 -> v2 <> v1.
 Proof. Admitted.
 
 (*
@@ -455,48 +466,6 @@ vt: target vertex
 *)
 
 (*
-dfs_transitivity:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g' (starting
-  from a Vertex 'vg') and a Vertex 'vt' is
-  found at the 'dfs' of 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'vl'), then Vertex 'vt' is found at
-  the 'dfs' of 'g' plus an AdjacencyList with
-  Vertex 'val' and its adjacenct vertices in
-  'vl' (starting from Vertex 'vg'), and vice
-  versa.
-*)
-Lemma dfs_transitivity :
-  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  well_formed g ->
-  (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
-  In vt (dfs ((al val vl) :: g) vg)).
-Proof. Admitted.
-
-(*
-bfs_transitivity:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g' (starting
-  from a Vertex 'vg') and a Vertex 'vt' is
-  found at the 'dfs' of 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'vl'), then Vertex 'vt' is found at
-  the 'dfs' of 'g' plus an AdjacencyList with
-  Vertex 'val' and its adjacenct vertices in
-  'vl' (starting from Vertex 'vg'), and vice
-  versa.
-*)
-Lemma bfs_transitivity :
-  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  well_formed g ->
-  (In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val)  <->
-  In vt (bfs ((al val vl) :: g) vg)).
-Proof. Admitted.
-
-(*
 dfs_add_al_val:
   For all well formed Graph 'g', if a Vertex
   'val' is found at the 'dfs' of 'g' plus an
@@ -736,6 +705,20 @@ Proof.
       * assumption.
 Qed.
 
+Lemma dfs_stack_not_started_from_al :
+  forall (g : Graph) (stack : VertexList) (calls : nat) (vl : VertexList) (v0 v1 : Vertex),
+  v1 <> v0 ->
+  In v0 (dfs_stack (al v1 vl :: g) [v0] stack calls) ->
+  In v0 (dfs g v0).
+Proof. Admitted.
+
+Lemma bfs_queue_not_started_from_al :
+  forall (g : Graph) (queue : VertexList) (calls : nat) (vl : VertexList) (v0 v1 : Vertex),
+  v1 <> v0 ->
+  In v0 (bfs_queue (al v1 vl :: g) [v0] queue calls) ->
+  In v0 (bfs g v0).
+Proof. Admitted.
+
 (*
 dfs_v_in_g:
   For all well formed Graph 'g', if a Vertex
@@ -748,7 +731,44 @@ Lemma dfs_v_in_g :
   forall (g : Graph) (v : Vertex),
   well_formed g ->
   (In v (dfs g v) -> In v (get_vertex_list g)).
-Proof. Admitted.
+Proof.
+  intros.
+  induction g.
+  - simpl in H0.
+    contradiction.
+  - destruct a.
+    assert (H1 := H).
+    apply g_well_formed_add in H1.
+    assert (IHg := IHg H1).
+    case (vertex_eq_dec v1 v0).
+    + intros.
+      simpl.
+      left.
+      assumption.
+    + intros.
+      simpl.
+      right.
+      simpl in H0.
+      rewrite vertex_noteq in H0.
+      * induction b_vl_contains_vertex in H0.
+        {
+          assert (H3 :=
+            dfs_stack_not_started_from_al
+              g
+              (get_adjacency_list v0 g ++ [])
+              (length g + (length v2 + n_edges g))
+              v2 v0 v1).
+          assert (H4 := H3 H2 H0).
+          assert (H5 := IHg H4).
+          assumption.
+        }
+        {
+          simpl in H0.
+          contradiction.
+        }
+      * apply vertex_noteq_symmetry.
+        assumption.
+Qed.
 
 (*
 bfs_v_in_g:
@@ -773,27 +793,98 @@ Proof.
     assert (IHg := IHg H1).
     case (vertex_eq_dec v1 v0).
     + intros.
-      rewrite H2.
       simpl.
       left.
-      reflexivity.
+      assumption.
     + intros.
       simpl.
       right.
       simpl in H0.
-Admitted.
+      rewrite vertex_noteq in H0.
+      * induction b_vl_contains_vertex in H0.
+        {
+          assert (H3 :=
+            bfs_queue_not_started_from_al
+              g
+              (get_adjacency_list v0 g)
+              (length g + (length v2 + n_edges g))
+              v2 v0 v1).
+          assert (H4 := H3 H2 H0).
+          assert (H5 := IHg H4).
+          assumption.
+        }
+        {
+          simpl in H0.
+          contradiction.
+        }
+      * apply vertex_noteq_symmetry.
+        assumption.
+Qed.
 
 (*
 g_not_contains_val:
   For all well formed Graph 'g' plus an
   AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl', Vertex
-  'val' does not belong to the list of
-  Vertices of 'g'.
+  adjacenct vertices in 'vl', Vertex 'v'
+  does not belong to the list of Vertices
+  of 'g'.
 *)
-Lemma g_not_contains_val :
-  forall (g : Graph) (vl : VertexList) (val vt : Vertex),
-  well_formed (al val vl :: g) -> ~ In val (get_vertex_list g).
+Lemma g_not_contains_v :
+  forall (g : Graph) (vl : VertexList) (v : Vertex),
+  well_formed (al v vl :: g) -> ~ In v (get_vertex_list g).
+Proof.
+  intros.
+  assert (H0 := H).
+  apply g_well_formed_add in H0.
+  unfold well_formed in H.
+  unfold b_well_formed in H.
+  destruct (b_vl_contains_repetition (get_vertex_list (al v0 vl :: g))).
+  - contradiction.
+  - destruct (b_vl_contains_repetition vl).
+    + contradiction.
+    + 
+Admitted.
+
+(*
+dfs_transitivity:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g' (starting
+  from a Vertex 'vg') and a Vertex 'vt' is
+  found at the 'dfs' of 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'vl'), then Vertex 'vt' is found at
+  the 'dfs' of 'g' plus an AdjacencyList with
+  Vertex 'val' and its adjacenct vertices in
+  'vl' (starting from Vertex 'vg'), and vice
+  versa.
+*)
+Lemma dfs_transitivity :
+  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
+  well_formed g ->
+  (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
+  In vt (dfs ((al val vl) :: g) vg)).
+Proof. Admitted.
+
+(*
+bfs_transitivity:
+  For all well formed Graph 'g', if a Vertex
+  'val' is found at the 'dfs' of 'g' (starting
+  from a Vertex 'vg') and a Vertex 'vt' is
+  found at the 'dfs' of 'g' plus an
+  AdjacencyList with Vertex 'val' and its
+  adjacenct vertices in 'vl' (starting from
+  Vertex 'vl'), then Vertex 'vt' is found at
+  the 'dfs' of 'g' plus an AdjacencyList with
+  Vertex 'val' and its adjacenct vertices in
+  'vl' (starting from Vertex 'vg'), and vice
+  versa.
+*)
+Lemma bfs_transitivity :
+  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
+  well_formed g ->
+  (In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val)  <->
+  In vt (bfs ((al val vl) :: g) vg)).
 Proof. Admitted.
 
 (*
@@ -827,13 +918,8 @@ Proof.
             destruct H0.
             apply dfs_v_in_g in H0.
             {
-              apply g_not_contains_val in wf.
-              {
-                contradiction.
-              }
-              {
-                assumption.
-              }
+              apply g_not_contains_v in wf.
+              contradiction.
             }
             {
               apply g_well_formed_add in wf.
@@ -866,13 +952,8 @@ Proof.
             destruct H0.
             apply bfs_v_in_g in H0.
             {
-              apply g_not_contains_val in wf.
-              {
-                contradiction.
-              }
-              {
-                assumption.
-              }
+              apply g_not_contains_v in wf.
+              contradiction.
             }
             {
               apply g_well_formed_add in wf.
