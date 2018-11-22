@@ -741,6 +741,23 @@ Lemma bfs_queue_ignore_calls :
   In v (bfs_queue g visited queue calls).
 Proof. Admitted.
 
+Lemma dfs_empty :
+  forall (g : Graph) (v1 v2 : Vertex),
+  ~ In v1 (get_vertex_list g) -> dfs g v1 = [].
+Proof. Admitted.
+
+Lemma dfs_basis :
+  forall (g : Graph) (vl : VertexList) (v : Vertex),
+  well_formed (al v vl :: g) ->
+  In v (dfs (al v vl :: g) v).
+Proof. Admitted.
+
+Lemma bfs_basis :
+  forall (g : Graph) (vl : VertexList) (v : Vertex),
+  well_formed (al v vl :: g) ->
+  In v (bfs (al v vl :: g) v).
+Proof. Admitted.
+
 (*
 dfs_v_in_g:
   For all well formed Graph 'g', if a Vertex
@@ -953,83 +970,8 @@ dfs_bfs_equal:
   at the bfs of 'g' (also starting from Vertex
   'vg'), and vice versa.
 *)
-(* Theorem dfs_bfs_equal :
-  forall (g : Graph) (vg vt : Vertex),
-  well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
-Proof.
-  intros g vg vt wf.
-  split.
-  - induction g as [| al g].
-    + intros.
-      simpl in H.
-      contradiction.
-    + intros.
-      destruct al as [val vl].
-      apply (bfs_transitivity g vl vg val vt).
-      * apply g_well_formed_add in wf.
-        assumption.
-      * apply (dfs_transitivity g vl vg val vt) in H.
-        {
-          destruct H.
-          apply (dfs_transitivity g vl val val vt) in H0.
-          {
-            destruct H0.
-            apply dfs_v_in_g in H0.
-            {
-              apply g_not_contains_v in wf.
-              contradiction.
-            }
-            {
-              apply g_well_formed_add in wf.
-              assumption.
-            }
-          }
-          {
-            apply g_well_formed_add in wf.
-            assumption.
-          }
-        }
-        {
-          apply g_well_formed_add in wf.
-          assumption.
-        }
-  - induction g as [| al g].
-    + intros.
-      simpl in H.
-      contradiction.
-    + intros.
-      destruct al as [val vl].
-      apply (dfs_transitivity g vl vg val vt).
-      * apply g_well_formed_add in wf.
-        assumption.
-      * apply (bfs_transitivity g vl vg val vt) in H.
-        {
-          destruct H.
-          apply (bfs_transitivity g vl val val vt) in H0.
-          {
-            destruct H0.
-            apply bfs_v_in_g in H0.
-            {
-              apply g_not_contains_v in wf.
-              contradiction.
-            }
-            {
-              apply g_well_formed_add in wf.
-              assumption.
-            }
-          }
-          {
-            apply g_well_formed_add in wf.
-            assumption.
-          }
-        }
-        {
-          apply g_well_formed_add in wf.
-          assumption.
-        }
-Qed. *)
 
-Theorem dfs_bfs_equal_2 :
+Theorem dfs_bfs_equal :
   forall (g : Graph) (vg vt : Vertex),
   well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
 Proof.
@@ -1041,18 +983,24 @@ Proof.
       contradiction.
     + intros.
       destruct al as [val vl].
-      apply (bfs_transitivity g vl vg val vt).
-      * apply g_well_formed_add in wf.
-        assumption.
-      * assert (wf2 := wf).
-        apply g_well_formed_add in wf2.
-        assert (IHg := IHg wf2).
-        destruct (vertex_eq_dec val vt).
+      assert (wf2 := wf).
+      apply g_well_formed_add in wf2.
+      assert (IHg := IHg wf2).
+      destruct (vertex_eq_dec val vt).
+      * rewrite H0 in wf.
+        rewrite H0 in H.
+        rewrite H0.
+        clear H0.
+        destruct (vertex_eq_dec vg vt).
         {
-          rewrite H0 in wf.
-          rewrite H0 in H.
           rewrite H0.
           clear H0.
+          assert (H1 := bfs_basis g vl vt).
+          assert (H1 := H1 wf).
+          assumption.
+        }
+        {
+          
         }
 
 End SEARCH.
