@@ -884,50 +884,27 @@ dfs_transitivity:
 Lemma dfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
   well_formed g ->
-  (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val)  <->
+  (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val) ->
   In vt (dfs ((al val vl) :: g) vg)).
 Proof.
-  split.
-  - intros.
-    destruct H0.
-    unfold dfs in H1.
-    simpl in H1.
-    rewrite (b_vertex_eq val) in H1.
-    induction (length g + (length vl + n_edges g)) in H1.
-    + simpl in H1.
-      destruct H1.
-      {
-        rewrite H1.
-        rewrite H1 in H0.
-        clear H1.
-        apply dfs_extend_already_found_al.
-        assumption.
-      }
-      {
-        contradiction.
-      }
-    + apply dfs_stack_ignore_calls in H1.
-      assert (H2 := IHn H1).
-      assumption.
-  - intros.
-    simpl in H0.
-    case (vertex_eq_dec vg val).
-    + intros.
-      rewrite H1.
+  intros.
+  destruct H0.
+  unfold dfs in H1.
+  simpl in H1.
+  rewrite (b_vertex_eq val) in H1.
+  induction (length g + (length vl + n_edges g)) in H1.
+  - simpl in H1.
+    destruct H1.
+    + rewrite H1.
       rewrite H1 in H0.
       clear H1.
-      rewrite (b_vertex_eq val) in H0.
-      induction (length g + (length vl + n_edges g)) in H0.
-      {
-        simpl in H0.
-        destruct H0.
-        {
-          rewrite H0.
-          clear H0.
-          
-        }
-      }
-Admitted.
+      apply dfs_extend_already_found_al.
+      assumption.
+    + contradiction.
+  - apply dfs_stack_ignore_calls in H1.
+    assert (H2 := IHn H1).
+    assumption.
+Qed.
 
 (*
 bfs_transitivity:
@@ -946,9 +923,27 @@ bfs_transitivity:
 Lemma bfs_transitivity :
   forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
   well_formed g ->
-  (In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val)  <->
+  (In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val) ->
   In vt (bfs ((al val vl) :: g) vg)).
-Proof. Admitted.
+Proof.
+  intros.
+  destruct H0.
+  unfold bfs in H1.
+  simpl in H1.
+  rewrite (b_vertex_eq val) in H1.
+  induction (length g + (length vl + n_edges g)) in H1.
+  - simpl in H1.
+    destruct H1.
+    + rewrite H1.
+      rewrite H1 in H0.
+      clear H1.
+      apply bfs_extend_already_found_al.
+      assumption.
+    + contradiction.
+  - apply bfs_queue_ignore_calls in H1.
+    assert (H2 := IHn H1).
+    assumption.
+Qed.
 
 (*
 dfs_bfs_equal:
@@ -958,7 +953,7 @@ dfs_bfs_equal:
   at the bfs of 'g' (also starting from Vertex
   'vg'), and vice versa.
 *)
-Theorem dfs_bfs_equal :
+(* Theorem dfs_bfs_equal :
   forall (g : Graph) (vg vt : Vertex),
   well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
 Proof.
@@ -1032,6 +1027,32 @@ Proof.
           apply g_well_formed_add in wf.
           assumption.
         }
-Qed.
+Qed. *)
+
+Theorem dfs_bfs_equal_2 :
+  forall (g : Graph) (vg vt : Vertex),
+  well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
+Proof.
+  intros g vg vt wf.
+  split.
+  - induction g as [| al g].
+    + intros.
+      simpl in H.
+      contradiction.
+    + intros.
+      destruct al as [val vl].
+      apply (bfs_transitivity g vl vg val vt).
+      * apply g_well_formed_add in wf.
+        assumption.
+      * assert (wf2 := wf).
+        apply g_well_formed_add in wf2.
+        assert (IHg := IHg wf2).
+        destruct (vertex_eq_dec val vt).
+        {
+          rewrite H0 in wf.
+          rewrite H0 in H.
+          rewrite H0.
+          clear H0.
+        }
 
 End SEARCH.
