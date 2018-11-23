@@ -52,26 +52,6 @@ Fixpoint beq_vertex
   end.
 
 (*
-b_vertex_eq:
-  For all Vertex 'v', it is always
-  equal to itself.
-*)
-Lemma b_vertex_eq :
-  forall (v : Vertex),
-  beq_vertex v v = true.
-Proof. Admitted.
-
-Lemma vertex_noteq :
-  forall (v1 v2 : Vertex),
-  v1 <> v2 -> beq_vertex v1 v2 = false.
-Proof. Admitted.
-
-Lemma vertex_noteq_symmetry :
-  forall (v1 v2 : Vertex),
-  v1 <> v2 -> v2 <> v1.
-Proof. Admitted.
-
-(*
 VertexList:
   A VertexList is a list of Vertices.
 *)
@@ -321,19 +301,6 @@ Fixpoint well_formed
   else False.
 
 (*
-g_well_formed_add:
-  For all Graph 'g', if 'g' plus an
-  AdjacencyList with Vertex 'v' and
-  its adjacenct vertices in 'vl' is
-  a well formed Graph, then 'g' is
-  also a well formed Graph.
-*)
-Lemma g_well_formed_add :
-  forall (g : Graph) (vl : VertexList) (v : Vertex),
-  well_formed ((al v vl) :: g) -> well_formed g.
-Proof. Admitted.
-
-(*
 DFS:
 *)
 
@@ -466,501 +433,81 @@ vt: target vertex
 *)
 
 (*
-dfs_add_al_val:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g' plus an
-  AdjacencyList with Vertex 'v' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'val'), then 'v' is equal to 'val'
-  or 'val' is found at the 'dfs' of 'g'
-  (also starting from Vertex 'val').
+g_well_formed_add:
+  For all Graph 'g', if 'g' plus an
+  AdjacencyList with Vertex 'v' and
+  its adjacenct vertices in 'vl' is
+  a well formed Graph, then 'g' is
+  also a well formed Graph.
 *)
-(* Lemma dfs_add_al_val :
-  forall (g : Graph) (vl : VertexList) (v val : Vertex),
-  well_formed g ->
-  (In val (dfs ((al v vl) :: g) val) <->
-  (v = val) \/ In val (dfs g val)).
-Proof. Admitted. *)
-(*
-bfs_add_al_val:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'bfs' of 'g' plus an
-  AdjacencyList with Vertex 'v' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'val'), then 'v' is equal to 'val'
-  or 'val' is found at the 'bfs' of 'g'
-  (also starting from Vertex 'val').
-*)
-(* Lemma bfs_add_al_val :
-  forall (g : Graph) (vl : VertexList) (v val : Vertex),
-  well_formed g ->
-  (In val (bfs ((al v vl) :: g) val) <->
-  (v = val) \/ In val (bfs g val)).
-Proof. Admitted. *)
-
-(*
-dfs_stack_val:
-  For all Vertex 'val', if it already
-  exists inside VertexList 'visited', then
-  'val' will continue existing inside
-  'visited' while 'dfs_stack' is computed',
-  once there are only insertions in
-  'visited' inside 'dfs_stack' computation.
-*)
-(* Lemma dfs_stack_val :
-  forall (g : Graph) (visited stack : VertexList) (calls : nat) (val : Vertex),
-  In val visited -> In val (dfs_stack g visited stack calls).
-Proof. Admitted. *)
-
-(*
-bfs_queue_val:
-  For all Vertex 'val', if it already
-  exists inside VertexList 'visited', then
-  'val' will continue existing inside
-  'visited' while 'bfs_queue' is computed',
-  once there are only insertions in
-  'visited' inside 'bfs_queue' computation.
-*)
-(* Lemma bfs_queue_val :
-  forall (g : Graph) (visited queue : VertexList) (calls : nat) (val : Vertex),
-  In val visited -> In val (bfs_queue g visited queue calls).
-Proof. Admitted. *)
-
-(*
-dfs_val_al_val_true:
-  Forall well formed Graph 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl', 'val' is
-  always found at the 'dfs' of 'g' with
-  this AdjacencyList (once the 'dfs' would
-  start from 'val' shortly).
-*)
-(* Lemma dfs_val_al_val_true :
-  forall (g : Graph) (vl : VertexList) (val : Vertex),
-  well_formed (al val vl :: g) ->
-  In val (dfs (al val vl :: g) val).
-Proof.
-  intros.
-  unfold dfs.
-  simpl.
-  rewrite (b_vertex_eq val).
-  apply (
-    dfs_stack_val
-      (al val vl :: g)
-      [val]
-      (vl ++ [])
-      (length g + (length vl + n_edges g))
-      val
-  ).
-  simpl.
-  left.
-  reflexivity.
-Qed. *)
-
-(*
-bfs_val_al_val_true:
-  Forall well formed Graph 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl', 'val' is
-  always found at the 'bfs' of 'g' with
-  this AdjacencyList (once the 'bfs' would
-  start from 'val' shortly).
-*)
-(* Lemma bfs_val_al_val_true :
-  forall (g : Graph) (vl : VertexList) (val : Vertex),
-  well_formed (al val vl :: g) ->
-  In val (bfs (al val vl :: g) val).
-Proof.
-  intros.
-  unfold bfs.
-  simpl.
-  rewrite (b_vertex_eq val).
-  apply (
-    bfs_queue_val
-      (al val vl :: g)
-      [val]
-      vl
-      (length g + (length vl + n_edges g))
-      val
-  ).
-  simpl.
-  left.
-  reflexivity.
-Qed. *)
-
-(*
-dfs_extend_val_val:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g'
-  (starting from 'val'), then 'val' is still
-  found by the 'dfs' when we add a
-  AdjacencyList into 'g'.
-*)
-(* Lemma dfs_extend_val_val :
-  forall (g : Graph) (vl : VertexList) (v val : Vertex),
-  well_formed g ->
-  (In val (dfs g val) -> In val (dfs (al v vl :: g) val)).
-Proof.
-  intros.
-  apply (dfs_add_al_val g vl v0 val).
-  - assumption.
-  - right.
-    assumption.
-Qed. *)
-
-(*
-bfs_extend_val_val:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'bfs' of 'g'
-  (starting from the same Vertex 'val'),
-  then 'val' is still found by the 'bfs'
-  when we add a AdjacencyList into 'g'.
-*)
-(* Lemma bfs_extend_val_val :
-  forall (g : Graph) (vl : VertexList) (v val : Vertex),
-  well_formed g ->
-  (In val (bfs g val) -> In val (bfs (al v vl :: g) val)).
-Proof.
-  intros.
-  apply (bfs_add_al_val g vl v0 val).
-  - assumption.
-  - right.
-    assumption.
-Qed. *)
-
-(*
-dfs_bfs_equal_val_val:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g' (starting
-  from the same Vertex 'val'), then 'val' is
-  also found at the bfs of 'g' (also starting
-  from Vertex 'val'), and vice versa.
-*)
-(* Lemma dfs_bfs_equal_val_val :
-  forall (g : Graph) (val : Vertex),
-  well_formed g ->
-  (In val (dfs g val) <-> In val (bfs g val)).
-Proof.
-  intros.
-  split.
-  - intros.
-    induction g.
-    + simpl in H0.
-      contradiction.
-    + destruct a.
-      assert (H1 := H).
-      apply g_well_formed_add in H.
-      assert (H2 := IHg H).
-      clear IHg.
-      apply dfs_add_al_val in H0.
-      * destruct H0.
-        {
-          rewrite H0.
-          rewrite H0 in H1.
-          clear H0.
-          apply bfs_val_al_val_true.
-          assumption.
-        }
-        {
-          assert (H3 := H2 H0).
-          clear H2.
-          apply bfs_extend_val_val.
-          {
-            assumption.
-          }
-          {
-            assumption.
-          }
-        }
-      * assumption.
-  - intros.
-    induction g.
-    + simpl in H0.
-      contradiction.
-    + destruct a.
-      assert (H1 := H).
-      apply g_well_formed_add in H.
-      assert (H2 := IHg H).
-      clear IHg.
-      apply bfs_add_al_val in H0.
-      * destruct H0.
-        {
-          rewrite H0.
-          rewrite H0 in H1.
-          clear H0.
-          apply dfs_val_al_val_true.
-          assumption.
-        }
-        {
-          assert (H3 := H2 H0).
-          clear H2.
-          apply dfs_extend_val_val.
-          {
-            assumption.
-          }
-          {
-            assumption.
-          }
-        }
-      * assumption.
-Qed. *)
-
-Lemma dfs_stack_not_started_from_al :
-  forall (g : Graph) (stack : VertexList) (calls : nat) (vl : VertexList) (v0 v1 : Vertex),
-  v1 <> v0 ->
-  In v0 (dfs_stack (al v1 vl :: g) [v0] stack calls) ->
-  In v0 (dfs g v0).
+Lemma g_well_formed_add :
+  forall (g : Graph) (vl : VertexList) (v : Vertex),
+  well_formed ((al v vl) :: g) -> well_formed g.
 Proof. Admitted.
 
-Lemma bfs_queue_not_started_from_al :
-  forall (g : Graph) (queue : VertexList) (calls : nat) (vl : VertexList) (v0 v1 : Vertex),
-  v1 <> v0 ->
-  In v0 (bfs_queue (al v1 vl :: g) [v0] queue calls) ->
-  In v0 (bfs g v0).
+Lemma dfs_extend :
+  forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
+  In v3 (dfs g v1) -> In v3 (dfs (al v2 vl :: g) v1).
 Proof. Admitted.
 
-Lemma dfs_extend_already_found_al :
-  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
-  In v2 (dfs g v1) -> In v2 (dfs (al v2 vl :: g) v1).
+Lemma bfs_extend :
+  forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
+  In v3 (bfs g v1) -> In v3 (bfs (al v2 vl :: g) v1).
 Proof. Admitted.
 
-Lemma bfs_extend_already_found_al :
-  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
-  In v2 (bfs g v1) -> In v2 (bfs (al v2 vl :: g) v1).
-Proof. Admitted.
-
-Lemma dfs_stack_ignore_calls :
-  forall (g : Graph) (visited stack : VertexList) (v : Vertex) (calls : nat),
-  In v (dfs_stack g visited stack (S calls)) ->
-  In v (dfs_stack g visited stack calls).
-Proof. Admitted.
-
-Lemma bfs_queue_ignore_calls :
-  forall (g : Graph) (visited queue : VertexList) (v : Vertex) (calls : nat),
-  In v (bfs_queue g visited queue (S calls)) ->
-  In v (bfs_queue g visited queue calls).
-Proof. Admitted.
-
-Lemma dfs_empty :
-  forall (g : Graph) (v1 v2 : Vertex),
-  ~ In v1 (get_vertex_list g) -> dfs g v1 = [].
-Proof. Admitted.
-
-Lemma dfs_basis :
+Lemma dfs_al_has_v :
   forall (g : Graph) (vl : VertexList) (v : Vertex),
   well_formed (al v vl :: g) ->
   In v (dfs (al v vl :: g) v).
 Proof. Admitted.
 
-Lemma bfs_basis :
+Lemma bfs_al_has_v :
   forall (g : Graph) (vl : VertexList) (v : Vertex),
   well_formed (al v vl :: g) ->
   In v (bfs (al v vl :: g) v).
 Proof. Admitted.
 
-(*
-dfs_v_in_g:
-  For all well formed Graph 'g', if a Vertex
-  'v' is found at the 'dfs' of 'g' (starting
-  from the same Vertex 'v'), then 'v' belongs
-  to the list of Vertices of 'g', and vice
-  versa.
-*)
-Lemma dfs_v_in_g :
-  forall (g : Graph) (v : Vertex),
-  well_formed g ->
-  (In v (dfs g v) -> In v (get_vertex_list g)).
-Proof.
-  intros.
-  induction g.
-  - simpl in H0.
-    contradiction.
-  - destruct a.
-    assert (H1 := H).
-    apply g_well_formed_add in H1.
-    assert (IHg := IHg H1).
-    case (vertex_eq_dec v1 v0).
-    + intros.
-      simpl.
-      left.
-      assumption.
-    + intros.
-      simpl.
-      right.
-      simpl in H0.
-      rewrite vertex_noteq in H0.
-      * induction b_vl_contains_vertex in H0.
-        {
-          assert (H3 :=
-            dfs_stack_not_started_from_al
-              g
-              (get_adjacency_list v0 g ++ [])
-              (length g + (length v2 + n_edges g))
-              v2 v0 v1).
-          assert (H4 := H3 H2 H0).
-          assert (H5 := IHg H4).
-          assumption.
-        }
-        {
-          simpl in H0.
-          contradiction.
-        }
-      * apply vertex_noteq_symmetry.
-        assumption.
-Qed.
+Lemma dfs_diff_al_has_v2_from_v1 :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v2 vl :: g) ->
+  (v1 <> v2 ->
+  In v2 (dfs (al v2 vl :: g) v1) -> In v2 (dfs g v1)).
+Proof. Admitted.
 
-(*
-bfs_v_in_g:
-  For all well formed Graph 'g', if a Vertex
-  'v' is found at the 'bfs' of 'g' (starting
-  from the same Vertex 'v'), then 'v' belongs
-  to the list of Vertices of 'g', and vice
-  versa.
-*)
-Lemma bfs_v_in_g :
-  forall (g : Graph) (v : Vertex),
-  well_formed g ->
-  (In v (bfs g v) -> In v (get_vertex_list g)).
-Proof.
-  intros.
-  induction g.
-  - simpl in H0.
-    contradiction.
-  - destruct a.
-    assert (H1 := H).
-    apply g_well_formed_add in H1.
-    assert (IHg := IHg H1).
-    case (vertex_eq_dec v1 v0).
-    + intros.
-      simpl.
-      left.
-      assumption.
-    + intros.
-      simpl.
-      right.
-      simpl in H0.
-      rewrite vertex_noteq in H0.
-      * induction b_vl_contains_vertex in H0.
-        {
-          assert (H3 :=
-            bfs_queue_not_started_from_al
-              g
-              (get_adjacency_list v0 g)
-              (length g + (length v2 + n_edges g))
-              v2 v0 v1).
-          assert (H4 := H3 H2 H0).
-          assert (H5 := IHg H4).
-          assumption.
-        }
-        {
-          simpl in H0.
-          contradiction.
-        }
-      * apply vertex_noteq_symmetry.
-        assumption.
-Qed.
+Lemma bfs_diff_al_has_v2_from_v1 :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v2 vl :: g) ->
+  (v1 <> v2 ->
+  In v2 (bfs (al v2 vl :: g) v1) -> In v2 (bfs g v1)).
+Proof. Admitted.
 
-(*
-g_not_contains_val:
-  For all well formed Graph 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl', Vertex 'v'
-  does not belong to the list of Vertices
-  of 'g'.
-*)
-Lemma g_not_contains_v :
-  forall (g : Graph) (vl : VertexList) (v : Vertex),
-  well_formed (al v vl :: g) -> ~ In v (get_vertex_list g).
-Proof.
-  intros.
-  assert (H0 := H).
-  apply g_well_formed_add in H0.
-  unfold well_formed in H.
-  unfold b_well_formed in H.
-  destruct (b_vl_contains_repetition (get_vertex_list (al v0 vl :: g))).
-  - contradiction.
-  - destruct (b_vl_contains_repetition vl).
-    + contradiction.
-    + 
-Admitted.
+Lemma dfs_diff_al_has_v2_from_v2 :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v1 vl :: g) ->
+  (v1 <> v2 ->
+  In v2 (dfs (al v1 vl :: g) v2) -> In v2 (dfs g v2)).
+Proof. Admitted.
 
-(*
-dfs_transitivity:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g' (starting
-  from a Vertex 'vg') and a Vertex 'vt' is
-  found at the 'dfs' of 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'vl'), then Vertex 'vt' is found at
-  the 'dfs' of 'g' plus an AdjacencyList with
-  Vertex 'val' and its adjacenct vertices in
-  'vl' (starting from Vertex 'vg'), and vice
-  versa.
-*)
-Lemma dfs_transitivity :
-  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  well_formed g ->
-  (In val (dfs g vg) /\ In vt (dfs ((al val vl) :: g) val) ->
-  In vt (dfs ((al val vl) :: g) vg)).
-Proof.
-  intros.
-  destruct H0.
-  unfold dfs in H1.
-  simpl in H1.
-  rewrite (b_vertex_eq val) in H1.
-  induction (length g + (length vl + n_edges g)) in H1.
-  - simpl in H1.
-    destruct H1.
-    + rewrite H1.
-      rewrite H1 in H0.
-      clear H1.
-      apply dfs_extend_already_found_al.
-      assumption.
-    + contradiction.
-  - apply dfs_stack_ignore_calls in H1.
-    assert (H2 := IHn H1).
-    assumption.
-Qed.
+Lemma bfs_diff_al_has_v2_from_v2 :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v1 vl :: g) ->
+  (v1 <> v2 ->
+  In v2 (bfs (al v1 vl :: g) v2) -> In v2 (bfs g v2)).
+Proof. Admitted.
+ 
+Lemma dfs_bridge :
+  forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
+  well_formed ((al v2 vl) :: g) ->
+  (v1 <> v3 -> v2 <> v3 ->
+  In v3 (dfs (al v2 vl :: g) v1) -> In v3 (dfs g v1)).
+Proof. Admitted.
 
-(*
-bfs_transitivity:
-  For all well formed Graph 'g', if a Vertex
-  'val' is found at the 'dfs' of 'g' (starting
-  from a Vertex 'vg') and a Vertex 'vt' is
-  found at the 'dfs' of 'g' plus an
-  AdjacencyList with Vertex 'val' and its
-  adjacenct vertices in 'vl' (starting from
-  Vertex 'vl'), then Vertex 'vt' is found at
-  the 'dfs' of 'g' plus an AdjacencyList with
-  Vertex 'val' and its adjacenct vertices in
-  'vl' (starting from Vertex 'vg'), and vice
-  versa.
-*)
-Lemma bfs_transitivity :
-  forall (g : Graph) (vl : VertexList) (vg val vt : Vertex),
-  well_formed g ->
-  (In val (bfs g vg) /\ In vt (bfs ((al val vl) :: g) val) ->
-  In vt (bfs ((al val vl) :: g) vg)).
-Proof.
-  intros.
-  destruct H0.
-  unfold bfs in H1.
-  simpl in H1.
-  rewrite (b_vertex_eq val) in H1.
-  induction (length g + (length vl + n_edges g)) in H1.
-  - simpl in H1.
-    destruct H1.
-    + rewrite H1.
-      rewrite H1 in H0.
-      clear H1.
-      apply bfs_extend_already_found_al.
-      assumption.
-    + contradiction.
-  - apply bfs_queue_ignore_calls in H1.
-    assert (H2 := IHn H1).
-    assumption.
-Qed.
+Lemma bfs_bridge :
+  forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
+  well_formed ((al v2 vl) :: g) ->
+  (v1 <> v3 -> v2 <> v3 ->
+  In v3 (bfs (al v2 vl :: g) v1) -> In v3 (bfs g v1)).
+Proof. Admitted.
 
 (*
 dfs_bfs_equal:
@@ -970,37 +517,134 @@ dfs_bfs_equal:
   at the bfs of 'g' (also starting from Vertex
   'vg'), and vice versa.
 *)
-
 Theorem dfs_bfs_equal :
   forall (g : Graph) (vg vt : Vertex),
   well_formed g -> (In vt (dfs g vg) <-> In vt (bfs g vg)).
 Proof.
   intros g vg vt wf.
   split.
-  - induction g as [| al g].
-    + intros.
-      simpl in H.
+  - intros.
+    induction g as [| al g].
+    + simpl in H.
       contradiction.
-    + intros.
-      destruct al as [val vl].
+    + destruct al as [val vl].
       assert (wf2 := wf).
       apply g_well_formed_add in wf2.
       assert (IHg := IHg wf2).
       destruct (vertex_eq_dec val vt).
-      * rewrite H0 in wf.
+      * rewrite H0.
+        rewrite H0 in wf.
         rewrite H0 in H.
-        rewrite H0.
-        clear H0.
         destruct (vertex_eq_dec vg vt).
         {
-          rewrite H0.
-          clear H0.
-          assert (H1 := bfs_basis g vl vt).
-          assert (H1 := H1 wf).
+          rewrite H1.
+          assert (H2 := bfs_al_has_v g vl vt).
+          assert (H2 := H2 wf).
           assumption.
         }
         {
-          
+          assert (H2 := dfs_diff_al_has_v2_from_v1 g vl vg vt).
+          assert (H2 := H2 wf H1 H).
+          assert (IHg := IHg H2).
+          apply (bfs_extend g vl vg vt vt) in IHg.
+          assumption.
         }
+      * destruct (vertex_eq_dec vg vt).
+        {
+          rewrite H1.
+          rewrite H1 in H.
+          rewrite H1 in IHg.
+          apply (dfs_diff_al_has_v2_from_v2 g vl val vt) in H.
+          assert (IHg := IHg H).
+          {
+            apply (bfs_extend g vl vt val vt) in IHg.
+            assumption.
+          }
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
+        }
+        {
+          apply dfs_bridge in H.
+          assert (IHg := IHg H).
+          {
+            apply (bfs_extend g vl vg val vt) in IHg.
+            assumption.
+          }
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
+        }
+  - intros.
+    induction g as [| al g].
+    + simpl in H.
+      contradiction.
+    + destruct al as [val vl].
+      assert (wf2 := wf).
+      apply g_well_formed_add in wf2.
+      assert (IHg := IHg wf2).
+      destruct (vertex_eq_dec val vt).
+      * rewrite H0.
+        rewrite H0 in wf.
+        rewrite H0 in H.
+        destruct (vertex_eq_dec vg vt).
+        {
+          rewrite H1.
+          assert (H2 := dfs_al_has_v g vl vt).
+          assert (H2 := H2 wf).
+          assumption.
+        }
+        {
+          assert (H2 := bfs_diff_al_has_v2_from_v1 g vl vg vt).
+          assert (H2 := H2 wf H1 H).
+          assert (IHg := IHg H2).
+          apply (dfs_extend g vl vg vt vt) in IHg.
+          assumption.
+        }
+      * destruct (vertex_eq_dec vg vt).
+        {
+          rewrite H1.
+          rewrite H1 in H.
+          rewrite H1 in IHg.
+          apply (bfs_diff_al_has_v2_from_v2 g vl val vt) in H.
+          assert (IHg := IHg H).
+          {
+            apply (dfs_extend g vl vt val vt) in IHg.
+            assumption.
+          }
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
+        }
+        {
+          apply bfs_bridge in H.
+          assert (IHg := IHg H).
+          {
+            apply (dfs_extend g vl vg val vt) in IHg.
+            assumption.
+          }
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
+          {
+            assumption.
+          }
+        }
+Qed.
 
 End SEARCH.
