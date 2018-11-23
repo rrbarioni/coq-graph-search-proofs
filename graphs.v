@@ -514,6 +514,16 @@ Lemma bfs_extend :
   (In v3 (bfs g v1) -> In v3 (bfs (al v2 vl :: g) v1)).
 Proof. Admitted.
 
+Lemma dfs_stack_visited :
+  forall (g : Graph) (visited stack : VertexList) (calls : nat) (v : Vertex),
+  In v visited -> In v (dfs_stack g visited stack calls).
+Proof. Admitted.
+
+Lemma bfs_queue_visited :
+  forall (g : Graph) (visited queue : VertexList) (calls : nat) (v : Vertex),
+  In v visited -> In v (bfs_queue g visited queue calls).
+Proof. Admitted.
+
 Lemma dfs_diff_al_has_v2_from_v2 :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v1 vl :: g) ->
@@ -522,6 +532,8 @@ Lemma dfs_diff_al_has_v2_from_v2 :
 Proof.
   intros.
   unfold dfs in H1.
+  destruct (b_vl_contains_vertex v2 (get_vertex_list (al v1 vl :: g))) in H1.
+ 
 Admitted.
 
 Lemma bfs_diff_al_has_v2_from_v2 :
@@ -576,6 +588,11 @@ Proof.
     + simpl in H.
       contradiction.
     + destruct al as [val vl].
+      {
+        unfold well_formed in wf.
+        unfold b_well_formed in wf.
+        unfold b_well_formed_aux in wf.
+      }
       assert (wf2 := wf).
       apply g_well_formed_add in wf2.
       assert (IHg := IHg wf2).
