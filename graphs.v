@@ -506,7 +506,6 @@ Proof.
   apply (g_contains_v_extend g vl v1 v2) in H3.
   rewrite H3.
   unfold dfs in H0.
-  rewrite H1 in H0.
 Admitted.
 
 Lemma bfs_extend :
@@ -520,7 +519,10 @@ Lemma dfs_diff_al_has_v2_from_v2 :
   well_formed (al v1 vl :: g) ->
   (v1 <> v2 ->
   In v2 (dfs (al v1 vl :: g) v2) -> In v2 (dfs g v2)).
-Proof. Admitted.
+Proof.
+  intros.
+  unfold dfs in H1.
+Admitted.
 
 Lemma bfs_diff_al_has_v2_from_v2 :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
