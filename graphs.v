@@ -252,6 +252,28 @@ Example n_edges_test_1:
    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = 6.
 Proof. simpl. reflexivity. Qed.
 
+Fixpoint b_g_vl_not_have_unref_vertex
+ (g : Graph)
+ (vl : VertexList) :=
+  match vl with
+  | [] => true
+  | v' :: vlt =>
+      if b_vl_contains_vertex v' (get_vertex_list g)
+      then b_g_vl_not_have_unref_vertex g vlt
+      else false
+  end.
+
+Fixpoint b_g_not_have_unref_vertex
+ (g sg : Graph)
+ : bool :=
+  match sg with
+  | [] => true
+  | (al v' vl') :: sgt =>
+      if b_g_vl_not_have_unref_vertex g vl'
+      then b_g_not_have_unref_vertex g sgt
+      else false
+  end.
+
 (*
 b_well_formed:
   Given a Graph 'g', checks if:
@@ -261,23 +283,27 @@ b_well_formed:
     not contain repeated Vertices
     in its Vertex list.
 *)
-Fixpoint b_well_formed
- (g : Graph)
+Fixpoint b_well_formed_aux
+ (g sg : Graph)
  : bool :=
   if b_vl_contains_repetition (get_vertex_list g)
   then false
   else
-    match g with
-    | [] => true
-    | (al v' vl) :: gt =>
+    match sg with
+    | [] => b_g_not_have_unref_vertex g g
+    | (al v' vl) :: sgt =>
         if b_vl_contains_repetition vl
         then false
-        else b_well_formed gt
+        else b_well_formed_aux g sgt
   end.
+
+Fixpoint b_well_formed
+ (g : Graph)
+ : bool := b_well_formed_aux g g.
 
 Example b_well_formed_test_1:
   b_well_formed
-    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = true.
+    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]; 3 -> []; 4 -> []; 5 -> []] = true.
 Proof. simpl. reflexivity. Qed.
 Example b_well_formed_test_2:
   b_well_formed
@@ -415,7 +441,6 @@ Example bfs_test_2:
     ([0 -> [1; 2]; 1 -> [2]; 2 -> [0; 3]; 3 -> []]) (v 5)
     = [].
 Proof. simpl. reflexivity. Qed.
-
 Example bfs_test_3:
   bfs
     ([0 -> [1; 2]]) (v 0)
@@ -432,53 +457,21 @@ val : start vertex in al
 vt: target vertex
 *)
 
-(*
-g_well_formed_add:
-  For all Graph 'g', if 'g' plus an
-  AdjacencyList with Vertex 'v' and
-  its adjacenct vertices in 'vl' is
-  a well formed Graph, then 'g' is
-  also a well formed Graph.
-*)
 Lemma g_well_formed_add :
   forall (g : Graph) (vl : VertexList) (v : Vertex),
-  well_formed ((al v vl) :: g) -> well_formed g.
+  well_formed (al v vl :: g) -> well_formed g.
 Proof. Admitted.
 
 Lemma dfs_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
-  In v3 (dfs g v1) -> In v3 (dfs (al v2 vl :: g) v1).
+  well_formed (al v2 vl :: g) ->
+  (In v3 (dfs g v1) -> In v3 (dfs (al v2 vl :: g) v1)).
 Proof. Admitted.
 
 Lemma bfs_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
-  In v3 (bfs g v1) -> In v3 (bfs (al v2 vl :: g) v1).
-Proof. Admitted.
-
-Lemma dfs_al_has_v :
-  forall (g : Graph) (vl : VertexList) (v : Vertex),
-  well_formed (al v vl :: g) ->
-  In v (dfs (al v vl :: g) v).
-Proof. Admitted.
-
-Lemma bfs_al_has_v :
-  forall (g : Graph) (vl : VertexList) (v : Vertex),
-  well_formed (al v vl :: g) ->
-  In v (bfs (al v vl :: g) v).
-Proof. Admitted.
-
-Lemma dfs_diff_al_has_v2_from_v1 :
-  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v2 vl :: g) ->
-  (v1 <> v2 ->
-  In v2 (dfs (al v2 vl :: g) v1) -> In v2 (dfs g v1)).
-Proof. Admitted.
-
-Lemma bfs_diff_al_has_v2_from_v1 :
-  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
-  well_formed (al v2 vl :: g) ->
-  (v1 <> v2 ->
-  In v2 (bfs (al v2 vl :: g) v1) -> In v2 (bfs g v1)).
+  (In v3 (bfs g v1) -> In v3 (bfs (al v2 vl :: g) v1)).
 Proof. Admitted.
 
 Lemma dfs_diff_al_has_v2_from_v2 :
@@ -497,16 +490,28 @@ Proof. Admitted.
  
 Lemma dfs_bridge :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
-  well_formed ((al v2 vl) :: g) ->
+  well_formed (al v2 vl :: g) ->
   (v1 <> v3 -> v2 <> v3 ->
   In v3 (dfs (al v2 vl :: g) v1) -> In v3 (dfs g v1)).
 Proof. Admitted.
 
 Lemma bfs_bridge :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
-  well_formed ((al v2 vl) :: g) ->
+  well_formed (al v2 vl :: g) ->
   (v1 <> v3 -> v2 <> v3 ->
   In v3 (bfs (al v2 vl :: g) v1) -> In v3 (bfs g v1)).
+Proof. Admitted.
+
+Lemma dfs_never :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v2 vl :: g) ->
+  ~ In v2 (dfs (al v2 vl :: g) v1).
+Proof. Admitted.
+
+Lemma bfs_never :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v2 vl :: g) ->
+  ~ In v2 (bfs (al v2 vl :: g) v1).
 Proof. Admitted.
 
 (*
@@ -532,21 +537,13 @@ Proof.
       apply g_well_formed_add in wf2.
       assert (IHg := IHg wf2).
       destruct (vertex_eq_dec val vt).
-      * rewrite H0.
-        rewrite H0 in wf.
-        rewrite H0 in H.
-        destruct (vertex_eq_dec vg vt).
+      * rewrite H0 in H.
+        apply dfs_never in H.
         {
-          rewrite H1.
-          assert (H2 := bfs_al_has_v g vl vt).
-          assert (H2 := H2 wf).
-          assumption.
+          contradiction.
         }
         {
-          assert (H2 := dfs_diff_al_has_v2_from_v1 g vl vg vt).
-          assert (H2 := H2 wf H1 H).
-          assert (IHg := IHg H2).
-          apply (bfs_extend g vl vg vt vt) in IHg.
+          rewrite <- H0.
           assumption.
         }
       * destruct (vertex_eq_dec vg vt).
@@ -558,7 +555,12 @@ Proof.
           assert (IHg := IHg H).
           {
             apply (bfs_extend g vl vt val vt) in IHg.
-            assumption.
+            {
+              assumption.
+            }
+            {
+              assumption.
+            }
           }
           {
             assumption.
@@ -572,7 +574,12 @@ Proof.
           assert (IHg := IHg H).
           {
             apply (bfs_extend g vl vg val vt) in IHg.
-            assumption.
+            {
+              assumption.
+            }
+            {
+              assumption.
+            }
           }
           {
             assumption.
@@ -593,21 +600,13 @@ Proof.
       apply g_well_formed_add in wf2.
       assert (IHg := IHg wf2).
       destruct (vertex_eq_dec val vt).
-      * rewrite H0.
-        rewrite H0 in wf.
-        rewrite H0 in H.
-        destruct (vertex_eq_dec vg vt).
+      * rewrite H0 in H.
+        apply bfs_never in H.
         {
-          rewrite H1.
-          assert (H2 := dfs_al_has_v g vl vt).
-          assert (H2 := H2 wf).
-          assumption.
+          contradiction.
         }
         {
-          assert (H2 := bfs_diff_al_has_v2_from_v1 g vl vg vt).
-          assert (H2 := H2 wf H1 H).
-          assert (IHg := IHg H2).
-          apply (dfs_extend g vl vg vt vt) in IHg.
+          rewrite <- H0.
           assumption.
         }
       * destruct (vertex_eq_dec vg vt).
@@ -619,7 +618,12 @@ Proof.
           assert (IHg := IHg H).
           {
             apply (dfs_extend g vl vt val vt) in IHg.
-            assumption.
+            {
+              assumption.
+            }
+            {
+              assumption.
+            }
           }
           {
             assumption.
@@ -633,7 +637,12 @@ Proof.
           assert (IHg := IHg H).
           {
             apply (dfs_extend g vl vg val vt) in IHg.
-            assumption.
+            {
+              assumption.
+            }
+            {
+              assumption.
+            }
           }
           {
             assumption.
