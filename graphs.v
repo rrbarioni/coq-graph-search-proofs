@@ -83,6 +83,11 @@ Example b_vl_contains_vertex_test_2:
   b_vl_contains_vertex (v 4) [v 2; v 3; v 4] = true.
 Proof. simpl. reflexivity. Qed.
 
+Lemma vl_contains_prop_to_bool :
+  forall (vl : VertexList) (v : Vertex),
+  In v vl -> b_vl_contains_vertex v vl = true.
+Proof. Admitted.
+
 (*
 b_vl_contains_repetition:
   Given a VertexList 'vl', checks if
@@ -462,11 +467,47 @@ Lemma g_well_formed_add :
   well_formed (al v vl :: g) -> well_formed g.
 Proof. Admitted.
 
+Lemma g_contains_v_extend :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  b_vl_contains_vertex v1 (get_vertex_list g) = true ->
+  b_vl_contains_vertex v1 (get_vertex_list (al v2 vl :: g)) = true.
+Proof. Admitted.
+
+Lemma dfs_contains_start :
+  forall (g : Graph) (v1 v2 : Vertex),
+  In v2 (dfs g v1) -> In v1 (get_vertex_list g).
+Proof. Admitted.
+
+Lemma bfs_contains_start :
+  forall (g : Graph) (v1 v2 : Vertex),
+  In v2 (bfs g v1) -> In v1 (get_vertex_list g).
+Proof. Admitted.
+
+Lemma g_already_has_start :
+  forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
+  well_formed (al v2 vl :: g) ->
+  In v1 (get_vertex_list g) ->
+  v1 <> v2.
+Proof. Admitted.
+
 Lemma dfs_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
   well_formed (al v2 vl :: g) ->
   (In v3 (dfs g v1) -> In v3 (dfs (al v2 vl :: g) v1)).
-Proof. Admitted.
+Proof.
+  intros.
+  assert (H1 := H0).
+  apply dfs_contains_start in H1.
+  assert (H2 := g_already_has_start g vl v1 v2).
+  assert (H2 := H2 H H1).
+  unfold dfs.
+  apply vl_contains_prop_to_bool in H1.
+  assert (H3 := H1).
+  apply (g_contains_v_extend g vl v1 v2) in H3.
+  rewrite H3.
+  unfold dfs in H0.
+  rewrite H1 in H0.
+Admitted.
 
 Lemma bfs_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
