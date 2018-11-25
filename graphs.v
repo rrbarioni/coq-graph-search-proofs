@@ -52,6 +52,26 @@ Fixpoint beq_vertex
   end.
 
 (*
+beq_vertex_v_true:
+  For all Vertex 'v', 'beq_vertex'
+  receiving 'v' twice always returns
+  true.
+*)
+Lemma beq_vertex_v_true :
+  forall (v : Vertex),
+  beq_vertex v v = true.
+Proof.
+  intros.
+  destruct v0.
+  simpl.
+  induction n.
+  - simpl.
+    reflexivity.
+  - simpl.
+    assumption.
+Qed.
+
+(*
 VertexList:
   A VertexList is a list of Vertices.
 *)
@@ -83,10 +103,43 @@ Example b_vl_contains_vertex_test_2:
   b_vl_contains_vertex (v 4) [v 2; v 3; v 4] = true.
 Proof. simpl. reflexivity. Qed.
 
+(*
+vl_contains_prop_to_bool:
+  For all VertexList 'vl' and Vertex 'v',
+  if 'v' is in 'vl' (Prop definition), then
+  'b_vl_contains_vertex' receiving 'v' and
+  'vl' always returns true.
+*)
 Lemma vl_contains_prop_to_bool :
   forall (vl : VertexList) (v : Vertex),
   In v vl -> b_vl_contains_vertex v vl = true.
-Proof. Admitted.
+Proof.
+  intros.
+  induction vl.
+  - simpl in H.
+    contradiction.
+  - simpl in H.
+    destruct H.
+    + rewrite H.
+      simpl.
+      rewrite (beq_vertex_v_true v0).
+      reflexivity.
+    + simpl.
+      assert (IHvl := IHvl H).
+      case (vertex_eq_dec v0 a).
+      * intros.
+        rewrite H0.
+        rewrite (beq_vertex_v_true a).
+        reflexivity.
+      * intros.
+        destruct beq_vertex.
+        {
+          reflexivity.
+        }
+        {
+          assumption.
+        }
+Qed.
 
 (*
 b_vl_contains_repetition:
@@ -257,6 +310,13 @@ Example n_edges_test_1:
    [1 -> [2; 3; 4]; 2 -> [1; 3; 5]] = 6.
 Proof. simpl. reflexivity. Qed.
 
+(*
+b_g_vl_not_have_unref_vertex:
+  Given a Graph 'g' and a VertexList
+  'vl', checks if an existing Vertex
+  in 'vl' does not exist in the VertexList
+  of 'g'.
+*)
 Fixpoint b_g_vl_not_have_unref_vertex
  (g : Graph)
  (vl : VertexList) :=
@@ -268,6 +328,13 @@ Fixpoint b_g_vl_not_have_unref_vertex
       else false
   end.
 
+(*
+b_g_not_have_unref_vertex:
+  Given a Graph 'g', checks if all
+  Vertices in all its AdjacencyLists
+  does not exist in the VertexList
+  of 'g'.
+*)
 Fixpoint b_g_not_have_unref_vertex
  (g sg : Graph)
  : bool :=
@@ -280,13 +347,10 @@ Fixpoint b_g_not_have_unref_vertex
   end.
 
 (*
-b_well_formed:
-  Given a Graph 'g', checks if:
-  - 'g' does not contain repeated
-    Vertices in its Vertex list;
-  - each AdjacencyList of 'g' does
-    not contain repeated Vertices
-    in its Vertex list.
+b_well_formed_aux:
+  Same as 'b_well_formed' (below),
+  but iterates through the Graph 'g'
+  with 'sg'.
 *)
 Fixpoint b_well_formed_aux
  (g sg : Graph)
@@ -302,6 +366,17 @@ Fixpoint b_well_formed_aux
         else b_well_formed_aux g sgt
   end.
 
+(*
+b_well_formed:
+  Given a Graph 'g', checks if:
+  - 'g' does not contain repeated
+    Vertices in its Vertex list;
+  - each AdjacencyList of 'g' does
+    not contain repeated Vertices
+    in its Vertex list.
+  - All vertices in all AdjacencyLists
+    must be in the VertexList of 'g'.
+*)
 Fixpoint b_well_formed
  (g : Graph)
  : bool := b_well_formed_aux g g.
@@ -462,27 +537,59 @@ val : start vertex in al
 vt: target vertex
 *)
 
+(*
+g_well_formed_add:
+  If a Graph 'g' plus an AdjacencyList
+  is well formed, then 'g' is well formed.
+  (currently, this Lemma is incorrect).
+*)
 Lemma g_well_formed_add :
   forall (g : Graph) (vl : VertexList) (v : Vertex),
   well_formed (al v vl :: g) -> well_formed g.
 Proof. Admitted.
 
+(*
+g_contains_v_extend:
+  If a Graph 'g' contains a Vertex 'v1'
+  in its VertexList, then 'g' plus an
+  AdjacencyList will still contain 'v1'.
+*)
 Lemma g_contains_v_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   b_vl_contains_vertex v1 (get_vertex_list g) = true ->
   b_vl_contains_vertex v1 (get_vertex_list (al v2 vl :: g)) = true.
 Proof. Admitted.
 
+(*
+dfs_contains_start:
+  If the 'dfs' of Graph 'g' (starting
+  from Vertex 'v1') returns any Vertex,
+  then 'v1' is in the VertexList of 'g'.
+*)
 Lemma dfs_contains_start :
   forall (g : Graph) (v1 v2 : Vertex),
   In v2 (dfs g v1) -> In v1 (get_vertex_list g).
 Proof. Admitted.
 
+(*
+bfs_contains_start:
+  If the 'bfs' of Graph 'g' (starting
+  from Vertex 'v1') returns any Vertex,
+  then 'v1' is in the VertexList of 'g'.
+*)
 Lemma bfs_contains_start :
   forall (g : Graph) (v1 v2 : Vertex),
   In v2 (bfs g v1) -> In v1 (get_vertex_list g).
 Proof. Admitted.
 
+(*
+g_already_has_start:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed
+  and a Vertex 'v1' is in the
+  VertexList of 'g', then 'v1' and
+  'v2' must be different.
+*)
 Lemma g_already_has_start :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v2 vl :: g) ->
@@ -490,6 +597,16 @@ Lemma g_already_has_start :
   v1 <> v2.
 Proof. Admitted.
 
+(*
+dfs_extend:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed
+  and a Vertex 'v3' is in the 'dfs'
+  of 'g' (starting from a Vertex
+  'v1'), then 'v3' is also in the
+  'dfs' of 'g' plus the AdjacencyList
+  (also starting from 'v1').
+*)
 Lemma dfs_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
   well_formed (al v2 vl :: g) ->
@@ -506,24 +623,75 @@ Proof.
   apply (g_contains_v_extend g vl v1 v2) in H3.
   rewrite H3.
   unfold dfs in H0.
+  (* In development. *)
 Admitted.
 
+(*
+bfs_extend:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed
+  and a Vertex 'v3' is in the 'bfs'
+  of 'g' (starting from a Vertex
+  'v1'), then 'v3' is also in the
+  'dfs' of 'g' plus the AdjacencyList
+  (also starting from 'v1').
+*)
 Lemma bfs_extend :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
   well_formed (al v2 vl :: g) ->
   (In v3 (bfs g v1) -> In v3 (bfs (al v2 vl :: g) v1)).
-Proof. Admitted.
+Proof.
+  intros.
+  assert (H1 := H0).
+  apply bfs_contains_start in H1.
+  assert (H2 := g_already_has_start g vl v1 v2).
+  assert (H2 := H2 H H1).
+  unfold bfs.
+  apply vl_contains_prop_to_bool in H1.
+  assert (H3 := H1).
+  apply (g_contains_v_extend g vl v1 v2) in H3.
+  rewrite H3.
+  unfold dfs in H0.
+  (* In development. *)
+Admitted.
 
+(*
+dfs_stack_visited:
+  If a Vertex 'v' is in a VertexList
+  'visited', then it will continue
+  existing inside 'visited' while
+  the 'dfs_stack' is being computed
+  and 'visited' is incremented.
+*)
 Lemma dfs_stack_visited :
   forall (g : Graph) (visited stack : VertexList) (calls : nat) (v : Vertex),
   In v visited -> In v (dfs_stack g visited stack calls).
 Proof. Admitted.
 
+(*
+bfs_queue_visited:
+  If a Vertex 'v' is in a VertexList
+  'visited', then it will continue
+  existing inside 'visited' while
+  the 'bfs_queue' is being computed
+  and 'visited' is incremented.
+*)
 Lemma bfs_queue_visited :
   forall (g : Graph) (visited queue : VertexList) (calls : nat) (v : Vertex),
   In v visited -> In v (bfs_queue g visited queue calls).
 Proof. Admitted.
 
+(*
+dfs_diff_al_has_v2_from_v2:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v1') is well formed
+  and 'v1' is different from a Vertex
+  'v2', then if 'v2' is found at the
+  'dfs' of 'g' plus the AdjacencyList
+  (starting from 'v2'), then 'v2' is
+  also found at the 'dfs' of 'g'
+  (also starting from 'v2').
+*)
 Lemma dfs_diff_al_has_v2_from_v2 :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v1 vl :: g) ->
@@ -533,16 +701,48 @@ Proof.
   intros.
   unfold dfs in H1.
   destruct (b_vl_contains_vertex v2 (get_vertex_list (al v1 vl :: g))) in H1.
- 
+  (* In development. *)
 Admitted.
 
+(*
+bfs_diff_al_has_v2_from_v2:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v1') is well formed
+  and 'v1' is different from a Vertex
+  'v2', then if 'v2' is found at the
+  'bfs' of 'g' plus the AdjacencyList
+  (starting from 'v2'), then 'v2' is
+  also found at the 'bfs' of 'g'
+  (also starting from 'v2').
+*)
 Lemma bfs_diff_al_has_v2_from_v2 :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v1 vl :: g) ->
   (v1 <> v2 ->
   In v2 (bfs (al v1 vl :: g) v2) -> In v2 (bfs g v2)).
-Proof. Admitted.
- 
+Proof.
+  intros.
+  unfold dfs in H1.
+  destruct (b_vl_contains_vertex v2 (get_vertex_list (al v1 vl :: g))) in H1.
+  (* In development. *)
+Admitted.
+
+(*
+dfs_bridge:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed,
+  'v1' is different from a Vertex
+  'v3' and 'v2' is different from a
+  Vertex 'v3', then if 'v3' is found
+  at the 'dfs' of 'g' plus the
+  AdjacencyList (starting from 'v1'),
+  then 'v3' is also found at the
+  'dfs' of 'g' (also starting from
+  'v1').
+  In this scenario, the 'dfs' of 'g'
+  starting from 'v1' will never pass
+  through 'v2'.
+*)
 Lemma dfs_bridge :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
   well_formed (al v2 vl :: g) ->
@@ -550,6 +750,22 @@ Lemma dfs_bridge :
   In v3 (dfs (al v2 vl :: g) v1) -> In v3 (dfs g v1)).
 Proof. Admitted.
 
+(*
+bfs_bridge:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed,
+  'v1' is different from a Vertex
+  'v3' and 'v2' is different from a
+  Vertex 'v3', then if 'v3' is found
+  at the 'bfs' of 'g' plus the
+  AdjacencyList (starting from 'v1'),
+  then 'v3' is also found at the
+  'bfs' of 'g' (also starting from
+  'v1').
+  In this scenario, the 'bfs' of 'g'
+  starting from 'v1' will never pass
+  through 'v2'.
+*)
 Lemma bfs_bridge :
   forall (g : Graph) (vl : VertexList) (v1 v2 v3 : Vertex),
   well_formed (al v2 vl :: g) ->
@@ -557,12 +773,30 @@ Lemma bfs_bridge :
   In v3 (bfs (al v2 vl :: g) v1) -> In v3 (bfs g v1)).
 Proof. Admitted.
 
+(*
+dfs_never:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed,
+  Then the 'dfs' of g plus the
+  AdjacencyList (starting from a
+  Vertex 'v1') will never pass
+  through 'v2'.
+*)
 Lemma dfs_never :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v2 vl :: g) ->
   ~ In v2 (dfs (al v2 vl :: g) v1).
 Proof. Admitted.
 
+(*
+bfs_never:
+  if Graph 'g' plus an AdjacencyList
+  (with Vertex 'v2') is well formed,
+  Then the 'bfs' of g plus the
+  AdjacencyList (starting from a
+  Vertex 'v1') will never pass
+  through 'v2'.
+*)
 Lemma bfs_never :
   forall (g : Graph) (vl : VertexList) (v1 v2 : Vertex),
   well_formed (al v2 vl :: g) ->
@@ -588,11 +822,29 @@ Proof.
     + simpl in H.
       contradiction.
     + destruct al as [val vl].
-      {
+      (*
+        The section commented below refers to
+        the performed attempts to solve the
+        well formation of the Graph induction.
+      *)
+      (* {
         unfold well_formed in wf.
         unfold b_well_formed in wf.
         unfold b_well_formed_aux in wf.
-      }
+        destruct (b_vl_contains_repetition (get_vertex_list (al val vl :: g))) in wf.
+        {
+          contradiction.
+        }
+        {
+          destruct (b_vl_contains_repetition vl) in wf.
+          {
+            contradiction.
+          }
+          {
+            
+          }
+        }
+      } *)
       assert (wf2 := wf).
       apply g_well_formed_add in wf2.
       assert (IHg := IHg wf2).
@@ -656,6 +908,12 @@ Proof.
     + simpl in H.
       contradiction.
     + destruct al as [val vl].
+      (*
+        The section commented below refers to
+        the performed attempts to solve the
+        well formation of the Graph induction
+        (same as above).
+      *)
       assert (wf2 := wf).
       apply g_well_formed_add in wf2.
       assert (IHg := IHg wf2).
